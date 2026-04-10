@@ -6,6 +6,7 @@ enum AppPhase {
     case ready
 }
 
+@MainActor
 @Observable
 final class AppState {
     var phase: AppPhase = .setup
