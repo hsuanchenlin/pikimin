@@ -18,6 +18,16 @@ final class AppState {
     var sdkDir: URL { appSupportDir.appendingPathComponent("sdk") }
     var avdDir: URL { appSupportDir.appendingPathComponent("avd") }
 
+    var sdkManager: SDKManager
+
+    init() {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = base.appendingPathComponent("Pikimin")
+        let sdk = appSupport.appendingPathComponent("sdk")
+        let avd = appSupport.appendingPathComponent("avd")
+        sdkManager = SDKManager(sdkDir: sdk, avdDir: avd)
+    }
+
     func checkSetupComplete() {
         let emulatorExists = FileManager.default.fileExists(
             atPath: sdkDir.appendingPathComponent("emulator/emulator").path
