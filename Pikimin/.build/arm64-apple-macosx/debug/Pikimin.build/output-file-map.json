@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/primary.swiftdeps"
+  },
+  "/Users/hsuan/Projects/pikimin/Pikimin/Sources/AppState.swift": {
+    "dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/AppState.d",
+    "object": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/AppState.swift.o",
+    "swiftmodule": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/AppState~partial.swiftmodule",
+    "swift-dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/AppState.swiftdeps",
+    "diagnostics": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/AppState.dia"
+  },
+  "/Users/hsuan/Projects/pikimin/Pikimin/Sources/PikiminApp.swift": {
+    "dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/PikiminApp.d",
+    "object": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/PikiminApp.swift.o",
+    "swiftmodule": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/PikiminApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/PikiminApp.swiftdeps",
+    "diagnostics": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/PikiminApp.dia"
+  },
+  "/Users/hsuan/Projects/pikimin/Pikimin/Sources/Views/MainView.swift": {
+    "dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/MainView.d",
+    "object": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/MainView.swift.o",
+    "swiftmodule": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/MainView~partial.swiftmodule",
+    "swift-dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/MainView.swiftdeps",
+    "diagnostics": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/MainView.dia"
+  },
+  "/Users/hsuan/Projects/pikimin/Pikimin/Sources/Views/SetupView.swift": {
+    "dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/SetupView.d",
+    "object": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/SetupView.swift.o",
+    "swiftmodule": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/SetupView~partial.swiftmodule",
+    "swift-dependencies": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/SetupView.swiftdeps",
+    "diagnostics": "/Users/hsuan/Projects/pikimin/Pikimin/.build/arm64-apple-macosx/debug/Pikimin.build/SetupView.dia"
+  }
+}
