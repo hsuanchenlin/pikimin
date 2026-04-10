@@ -21,6 +21,8 @@ final class AppState {
 
     var sdkManager: SDKManager
     var emulatorManager: EmulatorManager
+    let walkState = WalkState()
+    var walkSimulator: WalkSimulator
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -29,6 +31,7 @@ final class AppState {
         let avd = appSupport.appendingPathComponent("avd")
         sdkManager = SDKManager(sdkDir: sdk, avdDir: avd)
         emulatorManager = EmulatorManager(sdkDir: sdk, avdDir: avd)
+        walkSimulator = WalkSimulator(sdkDir: sdk, state: walkState)
     }
 
     func checkSetupComplete() {
