@@ -20,8 +20,9 @@ mkdir -p "$DMG_DIR/$APP_NAME.app/Contents/Resources"
 # Copy binary
 cp "$BUILD_DIR/$APP_NAME" "$DMG_DIR/$APP_NAME.app/Contents/MacOS/"
 
-# Copy icon
+# Copy resources
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
+cp "$PROJECT_DIR/Resources/ADBKeyboard.apk" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
 
 # Create Info.plist
 cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'

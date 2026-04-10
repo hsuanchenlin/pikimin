@@ -15,6 +15,7 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 
 cp "$PROJECT_DIR/.build/debug/Pikimin" "$APP_BUNDLE/Contents/MacOS/"
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/"
+cp "$PROJECT_DIR/Resources/ADBKeyboard.apk" "$APP_BUNDLE/Contents/Resources/"
 
 cat > "$APP_BUNDLE/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

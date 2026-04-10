@@ -94,7 +94,7 @@ struct SetupView: View {
                                 Text("""
                                 brew install --cask android-commandlinetools
                                 sdkmanager "platform-tools" "emulator" \
-                                  "system-images;android-35;google_apis_playstore;arm64-v8a"
+                                  "system-images;android-36.0-Baklava;google_apis_playstore;arm64-v8a"
                                 """)
                                 .font(.system(.caption, design: .monospaced))
                                 .textSelection(.enabled)
@@ -119,19 +119,29 @@ struct SetupView: View {
                             .foregroundStyle(.secondary)
                         }
 
-                        // Show detected paths
-                        VStack(alignment: .leading, spacing: 4) {
+                        // Show detected paths and what's missing
+                        VStack(alignment: .leading, spacing: 6) {
                             Text("Searched locations:")
                                 .font(.caption2.bold())
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.secondary)
                             ForEach(AppState.searchPaths, id: \.path) { path in
-                                HStack(spacing: 4) {
-                                    Image(systemName: appState.isValidSDK(at: path) ? "checkmark.circle.fill" : "xmark.circle")
-                                        .foregroundColor(appState.isValidSDK(at: path) ? .green : .gray)
-                                        .font(.caption2)
-                                    Text(path.path)
-                                        .font(.system(.caption2, design: .monospaced))
-                                        .foregroundStyle(.tertiary)
+                                let missing = appState.missingComponents(at: path)
+                                let exists = FileManager.default.fileExists(atPath: path.path)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: missing.isEmpty ? "checkmark.circle.fill" : exists ? "exclamationmark.circle.fill" : "xmark.circle")
+                                            .foregroundColor(missing.isEmpty ? .green : exists ? .orange : .gray)
+                                            .font(.caption2)
+                                        Text(path.path)
+                                            .font(.system(.caption2, design: .monospaced))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    if exists && !missing.isEmpty {
+                                        Text("Missing: \(missing.joined(separator: ", "))")
+                                            .font(.caption2)
+                                            .foregroundColor(.orange)
+                                            .padding(.leading, 18)
+                                    }
                                 }
                             }
                         }

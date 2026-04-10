@@ -26,8 +26,39 @@ final class EmulatorManager {
     /// Check if an emulator is already running and attach to it
     func detectRunning() {
         if adb.isDeviceOnline() && adb.isBootComplete() {
+            setupKeyboard()
             state = .running
         }
+    }
+
+    /// Install ADBKeyboard and enable it for text input into Unity apps
+    private func setupKeyboard() {
+        // Check if already installed
+        let packages = (try? adb.shell("pm list packages com.android.adbkeyboard")) ?? ""
+        if !packages.contains("com.android.adbkeyboard") {
+            // Find the APK bundled with the app
+            let apkPath = findBundledAPK()
+            if let apk = apkPath {
+                _ = try? adb.run("install", apk)
+            }
+        }
+        _ = try? adb.shell("ime enable com.android.adbkeyboard/.AdbIME")
+    }
+
+    private func findBundledAPK() -> String? {
+        // Check in app bundle Resources
+        if let bundlePath = Bundle.main.path(forResource: "ADBKeyboard", ofType: "apk") {
+            return bundlePath
+        }
+        // Check in project Resources directory (dev mode)
+        let devPath = sdkDir
+            .deletingLastPathComponent() // sdk/
+            .deletingLastPathComponent() // Pikimin app support/
+            .appendingPathComponent("ADBKeyboard.apk")
+        if FileManager.default.fileExists(atPath: devPath.path) {
+            return devPath.path
+        }
+        return nil
     }
 
     func start() async {
@@ -69,6 +100,7 @@ final class EmulatorManager {
 
             try await waitForBoot()
             _ = try? adb.shell("settings put secure show_ime_with_hard_keyboard 1")
+            setupKeyboard()
             state = .running
         } catch is CancellationError {
             stop()

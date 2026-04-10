@@ -142,6 +142,19 @@ final class SDKManager {
         }
     }
 
+    private func findSystemImage() -> String? {
+        for imgPath in [
+            "system-images/android-36.0-Baklava/google_apis_playstore/arm64-v8a",
+            "system-images/android-36.0-Baklava/google_apis_playstore_ps16k/arm64-v8a",
+            "system-images/android-35/google_apis_playstore/arm64-v8a",
+        ] {
+            if FileManager.default.fileExists(atPath: sdkDir.appendingPathComponent(imgPath + "/system.img").path) {
+                return imgPath
+            }
+        }
+        return nil
+    }
+
     /// Public entry point for creating AVD only (when SDK already exists)
     func createAVDOnly() async throws {
         try FileManager.default.createDirectory(at: avdDir, withIntermediateDirectories: true)
@@ -154,6 +167,18 @@ final class SDKManager {
             return
         }
 
+        // Find the system image
+        let sysImageRelPath: String
+        if let found = findSystemImage() {
+            sysImageRelPath = found + "/"
+        } else {
+            sysImageRelPath = "system-images/android-35/google_apis_playstore/arm64-v8a/"
+        }
+
+        // Determine target from path (e.g. "android-36.0-Baklava" or "android-35")
+        let pathParts = sysImageRelPath.split(separator: "/")
+        let target = pathParts.count >= 2 ? String(pathParts[1]) : "android-35"
+
         try FileManager.default.createDirectory(at: avdPath, withIntermediateDirectories: true)
 
         // Write the AVD ini pointer
@@ -161,12 +186,9 @@ final class SDKManager {
 avd.ini.encoding=UTF-8
 path=\(avdPath.path)
 path.rel=avd/Pikimin.avd
-target=android-35
+target=\(target)
 """
         try iniContent.write(to: avdDir.appendingPathComponent("Pikimin.ini"), atomically: true, encoding: .utf8)
-
-        // Write the AVD config
-        let sysImageRelPath = "system-images/android-35/google_apis_playstore/arm64-v8a/"
         let config = """
 PlayStore.enabled=yes
 abi.type=arm64-v8a
@@ -191,7 +213,7 @@ hw.gpu.enabled=yes
 hw.gpu.mode=host
 hw.gsmModem=yes
 hw.gyroscope=yes
-hw.keyboard=no
+hw.keyboard=yes
 hw.keyboard.charmap=qwerty2
 hw.keyboard.lid=yes
 hw.lcd.density=420
@@ -217,7 +239,7 @@ sdcard.size=512 MB
 showDeviceFrame=yes
 tag.display=Google Play
 tag.id=google_apis_playstore
-target=android-35
+target=\(target)
 vm.heapSize=228M
 """
         try config.write(
