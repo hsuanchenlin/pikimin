@@ -20,6 +20,7 @@ final class AppState {
     var avdDir: URL { appSupportDir.appendingPathComponent("avd") }
 
     var sdkManager: SDKManager
+    var emulatorManager: EmulatorManager
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -27,6 +28,7 @@ final class AppState {
         let sdk = appSupport.appendingPathComponent("sdk")
         let avd = appSupport.appendingPathComponent("avd")
         sdkManager = SDKManager(sdkDir: sdk, avdDir: avd)
+        emulatorManager = EmulatorManager(sdkDir: sdk, avdDir: avd)
     }
 
     func checkSetupComplete() {
