@@ -1,0 +1,81 @@
+# Pikimin
+
+A macOS app that wraps the Android emulator for Pikmin Bloom walk simulation. Install the app, point it at your Android SDK, and start walking — no Android Studio knowledge required.
+
+**Apple Silicon (M1+) only. macOS 14 Sonoma or later.**
+
+## What it does
+
+- Detects your existing Android SDK installation (Android Studio or Homebrew)
+- Creates and manages an Android emulator (Pixel 7, Play Store enabled)
+- Simulates realistic walking with GPS movement and step detection sensors
+- Live dashboard showing step count, progress, GPS coordinates, and walk log
+
+## Install
+
+### 1. Install Android SDK
+
+**Option A: Android Studio (recommended)**
+
+Download from [developer.android.com/studio](https://developer.android.com/studio). Open it once to complete setup, then install a system image via SDK Manager:
+- SDK Platforms > Android 16.0 (Baklava) or Android 15.0 (API 35)
+- Make sure "Google Play ARM 64 v8a System Image" is checked
+
+**Option B: Homebrew**
+
+```bash
+brew install --cask android-commandlinetools
+sdkmanager "platform-tools" "emulator" \
+  "system-images;android-36.0-Baklava;google_apis_playstore;arm64-v8a"
+```
+
+### 2. Install Pikimin
+
+Download `Pikimin.dmg` from [Releases](https://github.com/hsuanchenlin/pikimin/releases), open it, and drag `Pikimin.app` to Applications.
+
+First launch: right-click the app > Open (to bypass Gatekeeper since the app is ad-hoc signed).
+
+### 3. Use
+
+1. Open Pikimin — it detects your SDK automatically
+2. Click **Start Emulator** — wait for it to boot
+3. In the emulator, open Play Store and install Pikmin Bloom
+4. Set a GPS location in the emulator's extended controls
+5. Click **Start Walk** — watch the steps roll in
+
+## Features
+
+- **SDK Detection** — automatically finds Android SDK at `~/Library/Android/sdk` (Android Studio) or `/opt/homebrew/share/android-commandlinetools` (Homebrew)
+- **Emulator Management** — start/stop with one click, auto-detects already-running emulators
+- **Walk Simulation** — configurable step count, realistic gait cycle (accelerometer + gyroscope), random GPS movement with return-to-home
+- **Live Dashboard** — real-time step count, progress bar, phase indicator, GPS coordinates, elapsed time
+- **Walk Log** — timestamped entries every 50 steps
+- **Text Input Helper** — send text to the emulator for fields that don't accept keyboard input (e.g. Pikmin Bloom's date of birth)
+- **DNS Fix** — emulator launches with `-dns-server 8.8.8.8` to avoid connectivity issues
+
+## Build from source
+
+```bash
+cd Pikimin
+swift build
+./scripts/dev-run.sh    # build + launch as .app bundle
+./scripts/create-dmg.sh # build release DMG
+```
+
+## How the walk simulation works
+
+Each step cycle (~500ms) sends 7 sensor updates via `adb emu sensor set`:
+
+1. **Swing** — Z-axis drops below gravity
+2. **Heel strike** — Z-axis spike to 22 m/s² (the key trigger for step detection)
+3. **Peak impact** — Z-axis at 25 m/s²
+4. **Settling** — deceleration back toward gravity
+5. **Midstance** — gravity baseline (step detector needs this valley)
+6. **Toe off** — smaller secondary spike
+7. **Rest** — return to 9.8 m/s²
+
+GPS coordinates update each step (~1.5m per step) following a random walk pattern that returns to the starting point in the second half.
+
+## License
+
+MIT
