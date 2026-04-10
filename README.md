@@ -40,8 +40,20 @@ First launch: right-click the app > Open (to bypass Gatekeeper since the app is 
 1. Open Pikimin — it detects your SDK automatically
 2. Click **Start Emulator** — wait for it to boot
 3. In the emulator, open Play Store and install Pikmin Bloom
-4. Set a GPS location in the emulator's extended controls
+4. Set a GPS location (see below)
 5. Click **Start Walk** — watch the steps roll in
+
+### Setting GPS Location
+
+Before starting a walk, you need to set a starting location in the emulator:
+
+1. Click the **`...`** (three dots) button on the emulator toolbar to open **Extended Controls**
+2. Go to the **Location** tab
+3. Enter latitude and longitude (e.g. `51.9327, 4.5022` for Rotterdam), or search for a place name
+4. Click **Set Location**
+5. You should see the location update in Google Maps or Pikmin Bloom inside the emulator
+
+The walk simulation will read this location as the starting point and walk outward from it, then return in the second half.
 
 ## Features
 
