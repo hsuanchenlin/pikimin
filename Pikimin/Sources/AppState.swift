@@ -79,36 +79,29 @@ final class AppState {
     }
 
     func checkSetupComplete() {
-        // First try to find an existing SDK installation
-        if let existingSDK = detectExistingSDK() {
+        // Try to find an existing SDK installation
+        let foundSDK = detectExistingSDK()
+
+        if let existingSDK = foundSDK {
             useSDK(at: existingSDK)
-            // Ensure AVD exists
-            if !FileManager.default.fileExists(atPath: avdDir.appendingPathComponent("Pikimin.avd/config.ini").path) {
-                // Need to create AVD — go to setup (it will skip downloads)
-                phase = .setup
-                return
-            }
-            phase = .ready
+        } else if !isValidSDK(at: sdkDir) {
+            phase = .setup
             return
         }
 
-        // Check our own app support directory
-        let hasEmulator = FileManager.default.fileExists(
-            atPath: sdkDir.appendingPathComponent("emulator/emulator").path
-        )
-        let hasAdb = FileManager.default.fileExists(
-            atPath: sdkDir.appendingPathComponent("platform-tools/adb").path
-        )
-        let hasSysImg = FileManager.default.fileExists(
-            atPath: sdkDir.appendingPathComponent("system-images/android-35/google_apis_playstore/arm64-v8a/system.img").path
-        )
-        let hasAvd = FileManager.default.fileExists(
-            atPath: avdDir.appendingPathComponent("Pikimin.avd/config.ini").path
-        )
-        if hasEmulator && hasAdb && hasSysImg && hasAvd {
-            phase = .ready
-        } else {
-            phase = .setup
+        // SDK found — ensure AVD exists, create if needed
+        if !FileManager.default.fileExists(atPath: avdDir.appendingPathComponent("Pikimin.avd/config.ini").path) {
+            Task {
+                do {
+                    try await sdkManager.createAVDOnly()
+                    phase = .ready
+                } catch {
+                    phase = .setup
+                }
+            }
+            return
         }
+
+        phase = .ready
     }
 }

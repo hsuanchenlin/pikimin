@@ -142,6 +142,12 @@ final class SDKManager {
         }
     }
 
+    /// Public entry point for creating AVD only (when SDK already exists)
+    func createAVDOnly() async throws {
+        try FileManager.default.createDirectory(at: avdDir, withIntermediateDirectories: true)
+        try await createAVD()
+    }
+
     private func createAVD() async throws {
         let avdPath = avdDir.appendingPathComponent("Pikimin.avd")
         if FileManager.default.fileExists(atPath: avdPath.appendingPathComponent("config.ini").path) {
@@ -185,7 +191,7 @@ hw.gpu.enabled=yes
 hw.gpu.mode=host
 hw.gsmModem=yes
 hw.gyroscope=yes
-hw.keyboard=yes
+hw.keyboard=no
 hw.keyboard.charmap=qwerty2
 hw.keyboard.lid=yes
 hw.lcd.density=420

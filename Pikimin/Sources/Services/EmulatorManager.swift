@@ -61,6 +61,8 @@ final class EmulatorManager {
             }
 
             try await waitForBoot()
+            // Show soft keyboard even with hw.keyboard=yes
+            _ = try? adb.shell("settings put secure show_ime_with_hard_keyboard 1")
             state = .running
         } catch is CancellationError {
             stop()

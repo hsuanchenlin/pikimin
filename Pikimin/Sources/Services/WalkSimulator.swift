@@ -14,6 +14,7 @@ final class WalkSimulator {
     func start() {
         guard !state.isWalking else { return }
         state.reset()
+        state.startTime = Date()
 
         walkTask = Task {
             await run()
@@ -107,8 +108,15 @@ final class WalkSimulator {
             state.currentStep = step
             state.latitude = lat
             state.longitude = lon
+
+            // Log every 50 steps
+            if step % 50 == 0 || step == 1 {
+                state.addLog()
+            }
         }
 
+        // Final log entry
+        state.addLog()
         state.phase = .idle
     }
 
