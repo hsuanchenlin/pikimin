@@ -16,6 +16,9 @@ struct PikiminApp: App {
             }
             .environment(appState)
             .frame(minWidth: 500, minHeight: 400)
+            .onAppear {
+                appState.checkSetupComplete()
+            }
         }
         .windowResizability(.contentMinSize)
     }
