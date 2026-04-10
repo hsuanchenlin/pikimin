@@ -5,6 +5,8 @@ import Foundation
 final class SDKManager {
     var currentComponent: SDKComponent?
     var downloadProgress: Double = 0
+    var downloadedBytes: Int64 = 0
+    var totalBytes: Int64 = 0
     var extracting = false
     var error: String?
     var completed = false
@@ -49,24 +51,47 @@ final class SDKManager {
             return destURL
         }
 
-        let (asyncBytes, response) = try await URLSession.shared.bytes(from: component.url)
-        let totalBytes = (response as? HTTPURLResponse)
-            .flatMap { Int64($0.value(forHTTPHeaderField: "Content-Length") ?? "") }
-            ?? component.sizeBytes
+        // Use curl for reliable large downloads with resume support
+        let curlProcess = Process()
+        curlProcess.executableURL = URL(fileURLWithPath: "/usr/bin/curl")
+        curlProcess.arguments = [
+            "-L",                    // follow redirects
+            "-C", "-",               // resume partial downloads
+            "--retry", "5",          // retry up to 5 times
+            "--retry-delay", "3",    // wait 3s between retries
+            "--connect-timeout", "30",
+            "-o", destURL.path,
+            component.url.absoluteString
+        ]
+        curlProcess.standardOutput = FileHandle.nullDevice
+        curlProcess.standardError = FileHandle.nullDevice
 
-        var data = Data()
-        data.reserveCapacity(Int(totalBytes))
+        try curlProcess.run()
 
-        for try await byte in asyncBytes {
+        // Poll file size for progress updates
+        // Set totalBytes immediately so UI shows target size
+        let expectedSize = component.sizeBytes
+        totalBytes = expectedSize
+        downloadedBytes = 0
+        while curlProcess.isRunning {
+            try await Task.sleep(for: .milliseconds(500))
             try Task.checkCancellation()
-            data.append(byte)
-            if data.count % 1_000_000 == 0 {
-                downloadProgress = Double(data.count) / Double(totalBytes)
+            let attrs = try? FileManager.default.attributesOfItem(atPath: destURL.path)
+            let currentSize = (attrs?[.size] as? Int64) ?? 0
+            downloadedBytes = currentSize
+            totalBytes = expectedSize
+            if expectedSize > 0 {
+                downloadProgress = Double(currentSize) / Double(expectedSize)
             }
         }
-        downloadProgress = 1.0
 
-        try data.write(to: destURL)
+        guard curlProcess.terminationStatus == 0 else {
+            // Clean up partial file on failure
+            try? FileManager.default.removeItem(at: destURL)
+            throw SDKError.extractionFailed("Download failed (curl exit \(curlProcess.terminationStatus))")
+        }
+
+        downloadProgress = 1.0
         return destURL
     }
 
@@ -194,6 +219,28 @@ vm.heapSize=228M
             atomically: true,
             encoding: .utf8
         )
+    }
+}
+
+private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    var onProgress: ((Double, Int64, Int64) -> Void)?
+    var onComplete: ((URL?, Error?) -> Void)?
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        onComplete?(location, nil)
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error {
+            onComplete?(nil, error)
+        }
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                     didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
+                     totalBytesExpectedToWrite: Int64) {
+        guard totalBytesExpectedToWrite > 0 else { return }
+        onProgress?(Double(totalBytesWritten) / Double(totalBytesExpectedToWrite), totalBytesWritten, totalBytesExpectedToWrite)
     }
 }
 
