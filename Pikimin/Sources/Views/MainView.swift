@@ -171,6 +171,9 @@ struct MainView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            appState.emulatorManager.detectRunning()
+        }
     }
 
     private func emuStatusColor(_ state: EmulatorState) -> Color {

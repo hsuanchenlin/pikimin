@@ -23,6 +23,13 @@ final class EmulatorManager {
         self.adb = ADBHelper(sdkDir: sdkDir)
     }
 
+    /// Check if an emulator is already running and attach to it
+    func detectRunning() {
+        if adb.isDeviceOnline() && adb.isBootComplete() {
+            state = .running
+        }
+    }
+
     func start() async {
         guard state == .stopped else { return }
         state = .booting
@@ -61,7 +68,6 @@ final class EmulatorManager {
             }
 
             try await waitForBoot()
-            // Show soft keyboard even with hw.keyboard=yes
             _ = try? adb.shell("settings put secure show_ime_with_hard_keyboard 1")
             state = .running
         } catch is CancellationError {
@@ -73,8 +79,9 @@ final class EmulatorManager {
     }
 
     func stop() {
+        // Kill via adb regardless of whether we own the process
+        _ = try? adb.run("emu", "kill")
         if let process = emulatorProcess, process.isRunning {
-            _ = try? adb.run("emu", "kill")
             DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
                 if process.isRunning { process.terminate() }
             }

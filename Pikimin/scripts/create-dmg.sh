@@ -20,6 +20,9 @@ mkdir -p "$DMG_DIR/$APP_NAME.app/Contents/Resources"
 # Copy binary
 cp "$BUILD_DIR/$APP_NAME" "$DMG_DIR/$APP_NAME.app/Contents/MacOS/"
 
+# Copy icon
+cp "$PROJECT_DIR/Resources/AppIcon.icns" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
+
 # Create Info.plist
 cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -44,6 +47,8 @@ cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
     <array>
         <string>arm64</string>
     </array>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticTermination</key>
