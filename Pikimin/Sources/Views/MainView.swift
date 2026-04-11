@@ -200,13 +200,18 @@ struct MainView: View {
 
     private func sendTextToEmulator(_ text: String) {
         let adb = ADBHelper(sdkDir: appState.sdkDir)
-        // Strip non-digits for the hidden EditText
         let digits = text.filter { $0.isNumber }
-        // Clear existing field content
+        guard !digits.isEmpty else { return }
         Task.detached {
+            // Long press the date field to activate NativeKeyboard's EditText
+            _ = try? adb.run("shell", "input", "swipe", "540", "590", "540", "590", "500")
+            try? await Task.sleep(for: .seconds(1))
+            // Clear existing content
             for _ in 0..<20 {
                 _ = try? adb.run("shell", "input", "keyevent", "67")
             }
+            try? await Task.sleep(for: .milliseconds(200))
+            // Type the digits
             _ = try? adb.run("shell", "input", "text", digits)
         }
     }
