@@ -31,7 +31,7 @@ sdkmanager "platform-tools" "emulator" \
 
 ### 2. 安裝 Pikimin
 
-從 [Releases](https://github.com/hsuanchenlin/pikimin/releases) 下載 `Pikimin.dmg`，開啟後將 `Pikimin.app` 拖入「應用程式」資料夾。
+從 [Releases](https://github.com/hsuanchenlin/pikimin/releases) 下載 `Pikimin.dmg`，開啟後 **將 `Pikimin.app` 拖入「應用程式」資料夾**。這很重要——如果直接從 DMG 執行應用程式，退出磁碟映像後應用程式會消失。請務必先複製到「應用程式」資料夾。
 
 由於應用程式使用 ad-hoc 簽署（非 App Store 來源），macOS 會在首次啟動時阻擋。允許方式如下：
 

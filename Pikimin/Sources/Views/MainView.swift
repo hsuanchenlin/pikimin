@@ -95,6 +95,72 @@ struct MainView: View {
                 // Walk Card
                 GroupBox {
                     VStack(spacing: 14) {
+                        // Walk settings row 1: mode + speed
+                        HStack(spacing: 12) {
+                            Picker("Mode", selection: Binding(
+                                get: { walk.mode },
+                                set: { walk.mode = $0 }
+                            )) {
+                                ForEach(WalkMode.allCases, id: \.self) { mode in
+                                    Text(mode.rawValue).tag(mode)
+                                }
+                            }
+                            .frame(width: 180)
+                            .disabled(walk.isWalking)
+
+                            Picker("Speed", selection: Binding(
+                                get: { walk.speed },
+                                set: { walk.speed = $0 }
+                            )) {
+                                ForEach(WalkSpeed.allCases, id: \.self) { speed in
+                                    Text(speed.rawValue).tag(speed)
+                                }
+                            }
+                            .frame(width: 120)
+                            .disabled(walk.isWalking)
+
+                            Spacer()
+                        }
+
+                        // Walk settings row 2: mode-specific options
+                        if walk.mode == .fixedDirection && !walk.isWalking {
+                            HStack(spacing: 8) {
+                                Text("Direction:")
+                                    .font(.subheadline)
+                                Picker("", selection: Binding(
+                                    get: { walk.direction },
+                                    set: { walk.direction = $0 }
+                                )) {
+                                    ForEach(WalkDirection.allCases, id: \.self) { dir in
+                                        Text(dir.rawValue).tag(dir)
+                                    }
+                                }
+                                .frame(width: 80)
+                                Spacer()
+                            }
+                        }
+
+                        if walk.mode == .toDestination && !walk.isWalking {
+                            HStack(spacing: 8) {
+                                Text("Destination:")
+                                    .font(.subheadline)
+                                TextField("Latitude", text: Binding(
+                                    get: { walk.destLatitude },
+                                    set: { walk.destLatitude = $0 }
+                                ))
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 110)
+                                TextField("Longitude", text: Binding(
+                                    get: { walk.destLongitude },
+                                    set: { walk.destLongitude = $0 }
+                                ))
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 110)
+                                Spacer()
+                            }
+                        }
+
+                        // Steps + start/stop
                         HStack(spacing: 12) {
                             HStack(spacing: 6) {
                                 Image(systemName: "figure.walk")
@@ -151,7 +217,7 @@ struct MainView: View {
                                     Text(walk.phase.rawValue)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 2)
-                                        .background(walk.phase == .wandering ? .green.opacity(0.15) : .orange.opacity(0.15))
+                                        .background(phaseColor(walk.phase).opacity(0.15))
                                         .clipShape(Capsule())
                                     Spacer()
                                     Text(walk.percentText)
@@ -197,7 +263,7 @@ struct MainView: View {
                                                     .fontWeight(.medium)
                                                 Text(entry.phase.rawValue)
                                                     .frame(width: 65, alignment: .leading)
-                                                    .foregroundStyle(entry.phase == .wandering ? .green : .orange)
+                                                    .foregroundStyle(phaseColor(entry.phase))
                                                 Text("\(entry.latitude, specifier: "%.5f"), \(entry.longitude, specifier: "%.5f")")
                                                     .foregroundStyle(.tertiary)
                                             }
@@ -289,6 +355,15 @@ struct MainView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             appState.emulatorManager.detectRunning()
+        }
+    }
+
+    private func phaseColor(_ phase: WalkPhase) -> Color {
+        switch phase {
+        case .idle: return .gray
+        case .wandering: return .green
+        case .returning: return .orange
+        case .toDestination: return .blue
         }
     }
 

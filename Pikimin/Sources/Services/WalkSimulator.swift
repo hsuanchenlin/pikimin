@@ -41,16 +41,43 @@ final class WalkSimulator {
         state.longitude = lon
 
         let totalSteps = state.totalSteps
-        let halfSteps = totalSteps / 2
-        let gpsStep = 0.000014
+        let mode = state.mode
+        let speed = state.speed
+        let gpsStep = speed.gpsStep
+        let gaitDelay = speed.gaitDelay
+        let restDelay = speed.restDelay
 
+        switch mode {
+        case .randomWalk:
+            await runRandomWalk(baseLat: baseLat, baseLon: baseLon, lat: &lat, lon: &lon,
+                                totalSteps: totalSteps, gpsStep: gpsStep,
+                                gaitDelay: gaitDelay, restDelay: restDelay)
+        case .fixedDirection:
+            await runFixedDirection(lat: &lat, lon: &lon, totalSteps: totalSteps,
+                                   gpsStep: gpsStep, gaitDelay: gaitDelay, restDelay: restDelay)
+        case .toDestination:
+            await runToDestination(baseLat: baseLat, baseLon: baseLon, lat: &lat, lon: &lon,
+                                  totalSteps: totalSteps, gpsStep: gpsStep,
+                                  gaitDelay: gaitDelay, restDelay: restDelay)
+        }
+
+        state.addLog()
+        state.phase = .idle
+    }
+
+    // MARK: - Walk Modes
+
+    private func runRandomWalk(baseLat: Double, baseLon: Double,
+                               lat: inout Double, lon: inout Double,
+                               totalSteps: Int, gpsStep: Double,
+                               gaitDelay: Int, restDelay: Int) async {
+        let halfSteps = totalSteps / 2
         var direction = Int.random(in: 0..<8)
         var stepsInDir = 0
         var dirLength = Int.random(in: 30...150)
 
         for step in 1...totalSteps {
             if Task.isCancelled { break }
-
             state.phase = step <= halfSteps ? .wandering : .returning
 
             stepsInDir += 1
@@ -60,18 +87,7 @@ final class WalkSimulator {
                 direction = Int.random(in: 0..<8)
             }
 
-            let wobble = Double.random(in: -0.000005...0.000005)
-            switch direction {
-            case 0: lat += gpsStep;           lon += wobble
-            case 1: lat += gpsStep * 0.7;     lon += gpsStep * 0.7
-            case 2: lon += gpsStep;           lat += wobble
-            case 3: lat -= gpsStep * 0.7;     lon += gpsStep * 0.7
-            case 4: lat -= gpsStep;           lon += wobble
-            case 5: lat += gpsStep * 0.7;     lon -= gpsStep * 0.7
-            case 6: lon -= gpsStep;           lat += wobble
-            case 7: lat -= gpsStep * 0.7;     lon -= gpsStep * 0.7
-            default: break
-            }
+            moveInDirection(direction, lat: &lat, lon: &lon, gpsStep: gpsStep)
 
             if step > halfSteps {
                 let remaining = Double(totalSteps - step + 1)
@@ -79,45 +95,108 @@ final class WalkSimulator {
                 lon += (baseLon - lon) / (remaining * 3)
             }
 
-            try? adb.geoFix(longitude: lon, latitude: lat)
+            await doStep(step: step, lat: lat, lon: lon, gaitDelay: gaitDelay, restDelay: restDelay)
+        }
+    }
 
-            // Gait cycle
-            try? adb.setAcceleration(0.3, 0.4, 5.0)
-            try? adb.setGyroscope(0.2, 0.3, 0.0)
-            try? await Task.sleep(for: .milliseconds(50))
+    private func runFixedDirection(lat: inout Double, lon: inout Double,
+                                   totalSteps: Int, gpsStep: Double,
+                                   gaitDelay: Int, restDelay: Int) async {
+        let dirIndex = state.direction.index
 
-            try? adb.setAcceleration(-1.5, 2.0, 22.0)
-            try? await Task.sleep(for: .milliseconds(50))
+        for step in 1...totalSteps {
+            if Task.isCancelled { break }
+            state.phase = .wandering
 
-            try? adb.setAcceleration(-2.0, 2.5, 25.0)
-            try? await Task.sleep(for: .milliseconds(50))
+            moveInDirection(dirIndex, lat: &lat, lon: &lon, gpsStep: gpsStep)
+            await doStep(step: step, lat: lat, lon: lon, gaitDelay: gaitDelay, restDelay: restDelay)
+        }
+    }
 
-            try? adb.setAcceleration(-0.3, 0.5, 12.0)
-            try? await Task.sleep(for: .milliseconds(50))
-
-            try? adb.setAcceleration(0.0, 0.0, 9.8)
-            try? adb.setGyroscope(0.0, 0.0, 0.0)
-            try? await Task.sleep(for: .milliseconds(100))
-
-            try? adb.setAcceleration(0.5, -0.6, 15.0)
-            try? await Task.sleep(for: .milliseconds(50))
-
-            try? adb.setAcceleration(0.0, 0.0, 9.8)
-            try? await Task.sleep(for: .milliseconds(100))
-
-            state.currentStep = step
-            state.latitude = lat
-            state.longitude = lon
-
-            // Log every 50 steps
-            if step % 50 == 0 || step == 1 {
-                state.addLog()
-            }
+    private func runToDestination(baseLat: Double, baseLon: Double,
+                                  lat: inout Double, lon: inout Double,
+                                  totalSteps: Int, gpsStep: Double,
+                                  gaitDelay: Int, restDelay: Int) async {
+        guard let destLat = Double(state.destLatitude),
+              let destLon = Double(state.destLongitude) else {
+            state.phase = .idle
+            return
         }
 
-        // Final log entry
-        state.addLog()
-        state.phase = .idle
+        for step in 1...totalSteps {
+            if Task.isCancelled { break }
+            state.phase = .toDestination
+
+            // Calculate direction toward destination
+            let dLat = destLat - lat
+            let dLon = destLon - lon
+            let dist = (dLat * dLat + dLon * dLon).squareRoot()
+
+            // Reached destination (within ~5m)
+            if dist < 0.00005 { break }
+
+            // Normalize and move
+            let nLat = dLat / dist * gpsStep
+            let nLon = dLon / dist * gpsStep
+            // Add slight wobble for realism
+            let wobble = Double.random(in: -0.15...0.15)
+            lat += nLat + nLon * wobble
+            lon += nLon + nLat * wobble
+
+            await doStep(step: step, lat: lat, lon: lon, gaitDelay: gaitDelay, restDelay: restDelay)
+        }
+    }
+
+    // MARK: - Shared
+
+    private func moveInDirection(_ dir: Int, lat: inout Double, lon: inout Double, gpsStep: Double) {
+        let wobble = Double.random(in: -0.000005...0.000005)
+        switch dir {
+        case 0: lat += gpsStep;           lon += wobble
+        case 1: lat += gpsStep * 0.7;     lon += gpsStep * 0.7
+        case 2: lon += gpsStep;           lat += wobble
+        case 3: lat -= gpsStep * 0.7;     lon += gpsStep * 0.7
+        case 4: lat -= gpsStep;           lon += wobble
+        case 5: lat += gpsStep * 0.7;     lon -= gpsStep * 0.7
+        case 6: lon -= gpsStep;           lat += wobble
+        case 7: lat -= gpsStep * 0.7;     lon -= gpsStep * 0.7
+        default: break
+        }
+    }
+
+    private func doStep(step: Int, lat: Double, lon: Double, gaitDelay: Int, restDelay: Int) async {
+        try? adb.geoFix(longitude: lon, latitude: lat)
+
+        try? adb.setAcceleration(0.3, 0.4, 5.0)
+        try? adb.setGyroscope(0.2, 0.3, 0.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay))
+
+        try? adb.setAcceleration(-1.5, 2.0, 22.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay))
+
+        try? adb.setAcceleration(-2.0, 2.5, 25.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay))
+
+        try? adb.setAcceleration(-0.3, 0.5, 12.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay))
+
+        try? adb.setAcceleration(0.0, 0.0, 9.8)
+        try? adb.setGyroscope(0.0, 0.0, 0.0)
+        try? await Task.sleep(for: .milliseconds(restDelay))
+
+        try? adb.setAcceleration(0.5, -0.6, 15.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay))
+
+        try? adb.setAcceleration(0.0, 0.0, 9.8)
+        try? await Task.sleep(for: .milliseconds(restDelay))
+
+        state.currentStep = step
+        state.latitude = lat
+        state.longitude = lon
+
+        if step % 50 == 0 || step == 1 {
+            state.addLog()
+        }
     }
 
     private func getLocation() -> (latitude: Double, longitude: Double)? {

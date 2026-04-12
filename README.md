@@ -33,7 +33,7 @@ sdkmanager "platform-tools" "emulator" \
 
 ### 2. Install Pikimin
 
-Download `Pikimin.dmg` from [Releases](https://github.com/hsuanchenlin/pikimin/releases), open it, and drag `Pikimin.app` to Applications.
+Download `Pikimin.dmg` from [Releases](https://github.com/hsuanchenlin/pikimin/releases), open it, and **drag `Pikimin.app` into your Applications folder**. This is important — if you run the app directly from the DMG, it will disappear when you eject the disk image. Always copy it to Applications first.
 
 Since the app is ad-hoc signed (not from the App Store), macOS will block it on first launch. To allow it:
 
