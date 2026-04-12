@@ -74,6 +74,14 @@ sdkmanager "platform-tools" "emulator" \
 
 行走模擬會以此位置為起點向外行走，後半程返回起點。
 
+### 出生日期輸入問題
+
+Pikmin Bloom 的出生日期欄位使用了自訂鍵盤。標準鍵盤（實體鍵盤和螢幕鍵盤）在此畫面都無法使用——你會看到一個黑色/不可見的鍵盤。
+
+<img src="docs/images/date-of-birth-issue.png" width="300">
+
+解決方法：使用 Pikimin 控制面板中的 **「Type into emulator」** 欄位。輸入你的出生日期，格式為 `MM/DD/YYYY`（例如 `01011990`），然後點擊 **Send**。應用程式會自動將日期輸入到 Pikmin Bloom 中。
+
 ## 功能列表
 
 - **SDK 偵測** — 自動尋找 `~/Library/Android/sdk`（Android Studio）或 `/opt/homebrew/share/android-commandlinetools`（Homebrew）中的 Android SDK

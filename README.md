@@ -76,6 +76,14 @@ Before starting a walk, you need to set a starting location in the emulator:
 
 The walk simulation will read this location as the starting point and walk outward from it, then return in the second half.
 
+### Date of Birth Input Issue
+
+Pikmin Bloom uses a custom keyboard for the date of birth field. The standard keyboard (both physical and on-screen) will not work on this screen — you'll see a black/invisible keyboard.
+
+<img src="docs/images/date-of-birth-issue.png" width="300">
+
+To solve this, use the **"Type into emulator"** field in the Pikimin control panel. Enter your date in `MM/DD/YYYY` format (e.g. `01011990`) and click **Send**. The app will automatically input the date into Pikmin Bloom for you.
+
 ## Features
 
 - **SDK Detection** — automatically finds Android SDK at `~/Library/Android/sdk` (Android Studio) or `/opt/homebrew/share/android-commandlinetools` (Homebrew)
