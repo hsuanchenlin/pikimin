@@ -78,7 +78,7 @@ struct MainView: View {
                                 .buttonStyle(.bordered)
                                 .disabled(dateText.isEmpty)
                             }
-                            Text("Tap and hold the input field in the emulator first, then click Send")
+                            Text("Tap the input field in the emulator first (numpad should appear), then click Send")
                                 .font(.caption2)
                                 .foregroundStyle(.orange)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -252,8 +252,7 @@ struct MainView: View {
                                 icon: "keyboard",
                                 title: "Date of Birth Input",
                                 steps: [
-                                    "Pikmin Bloom uses a custom keyboard that doesn't work in the emulator",
-                                    "Tap and hold the date field in the emulator (~1 second)",
+                                    "Tap the date field in the emulator — a numpad should appear",
                                     "Type the date as digits in the panel above (e.g. 01011990)",
                                     "Click Send"
                                 ]
