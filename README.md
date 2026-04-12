@@ -82,7 +82,10 @@ Pikmin Bloom uses a custom keyboard for the date of birth field. The standard ke
 
 <img src="docs/images/date-of-birth-issue.png" width="300">
 
-To solve this, use the **"Type into emulator"** field in the Pikimin control panel. Enter your date in `MM/DD/YYYY` format (e.g. `01011990`) and click **Send**. The app will automatically input the date into Pikmin Bloom for you.
+To solve this:
+1. **Tap and hold** the date field in the emulator (long press for ~1 second) until you see a cursor appear
+2. In the Pikimin control panel, enter your date as digits (e.g. `01011990` for 01/01/1990) in the **"Type into emulator"** field
+3. Click **Send**
 
 ## Features
 

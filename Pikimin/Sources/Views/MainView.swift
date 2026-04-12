@@ -4,173 +4,289 @@ struct MainView: View {
     @Environment(AppState.self) private var appState
     @State private var stepInput: Int = 50_000
     @State private var dateText: String = ""
+    @State private var showHelp: Bool = false
 
     var body: some View {
         let emu = appState.emulatorManager
         let walk = appState.walkState
 
-        VStack(spacing: 0) {
-            Text("Pikimin")
-                .font(.title2.bold())
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-
-            Divider()
-
-            // Emulator section
-            VStack(spacing: 12) {
-                HStack {
-                    Circle()
-                        .fill(emuStatusColor(emu.state))
-                        .frame(width: 10, height: 10)
-                    Text("Emulator: \(emu.state.rawValue)")
-                        .font(.headline)
-                    Spacer()
-                    Button(emuButtonTitle(emu.state)) {
-                        if emu.state == .stopped {
-                            Task { await emu.start() }
-                        } else {
-                            appState.walkSimulator.stop()
-                            emu.stop()
-                        }
-                    }
-                    .disabled(emu.state == .booting)
-                }
-
-                if let error = emu.error {
-                    Text(error)
+        ScrollView {
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 4) {
+                    Text("Pikimin")
+                        .font(.title.bold())
+                    Text("Pikmin Bloom Walk Simulator")
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.secondary)
                 }
+                .padding(.top, 20)
+                .padding(.bottom, 12)
 
-                // Date input helper
-                if emu.state == .running {
-                    HStack {
-                        Text("Type into emulator:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField("MM/DD/YYYY", text: $dateText)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 120)
-                        Button("Send") {
-                            sendTextToEmulator(dateText)
-                        }
-                        .disabled(dateText.isEmpty)
-                    }
-                }
-            }
-            .padding(16)
-
-            Divider()
-
-            // Walk section
-            VStack(spacing: 12) {
-                HStack {
-                    Text("Walk Simulation")
-                        .font(.headline)
-                    Spacer()
-                    if walk.isWalking {
-                        Text(walk.elapsedText)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                HStack {
-                    Text("Steps:")
-                    TextField("Steps", value: $stepInput, format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                        .disabled(walk.isWalking)
-
-                    Spacer()
-
-                    Button(walk.isWalking ? "Stop Walk" : "Start Walk") {
-                        if walk.isWalking {
-                            appState.walkSimulator.stop()
-                        } else {
-                            walk.totalSteps = stepInput
-                            appState.walkSimulator.start()
-                        }
-                    }
-                    .disabled(emu.state != .running)
-                }
-
-                if walk.isWalking || !walk.logEntries.isEmpty {
-                    VStack(spacing: 8) {
-                        if walk.isWalking {
-                            ProgressView(value: walk.progress)
-                                .progressViewStyle(.linear)
-
-                            HStack {
-                                Text("\(walk.currentStep) / \(walk.totalSteps)")
-                                    .monospacedDigit()
-                                Spacer()
-                                Text(walk.phase.rawValue)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text(walk.percentText)
-                                    .monospacedDigit()
+                // Emulator Card
+                GroupBox {
+                    VStack(spacing: 14) {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(emuStatusColor(emu.state))
+                                .frame(width: 10, height: 10)
+                                .shadow(color: emuStatusColor(emu.state).opacity(0.5), radius: 4)
+                            Text("Emulator")
+                                .font(.headline)
+                            Text(emu.state.rawValue)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button {
+                                if emu.state == .stopped {
+                                    Task { await emu.start() }
+                                } else {
+                                    appState.walkSimulator.stop()
+                                    emu.stop()
+                                }
+                            } label: {
+                                Label(emuButtonTitle(emu.state),
+                                      systemImage: emu.state == .stopped ? "play.fill" : "stop.fill")
+                                    .font(.subheadline.weight(.medium))
                             }
-                            .font(.caption)
+                            .buttonStyle(.borderedProminent)
+                            .tint(emu.state == .stopped ? .green : .red)
+                            .disabled(emu.state == .booting)
+                        }
 
-                            HStack {
-                                Text("GPS: \(walk.latitude, specifier: "%.6f"), \(walk.longitude, specifier: "%.6f")")
-                                    .font(.system(.caption, design: .monospaced))
+                        if let error = emu.error {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        // Text input helper
+                        if emu.state == .running {
+                            Divider()
+                            HStack(spacing: 8) {
+                                Image(systemName: "keyboard")
                                     .foregroundStyle(.secondary)
-                                Spacer()
+                                TextField("Type text (e.g. 01011990)", text: $dateText)
+                                    .textFieldStyle(.roundedBorder)
+                                Button {
+                                    sendTextToEmulator(dateText)
+                                } label: {
+                                    Label("Send", systemImage: "paperplane.fill")
+                                        .font(.subheadline)
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(dateText.isEmpty)
+                            }
+                            Text("Tap and hold the input field in the emulator first, then click Send")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                } label: {
+                    Label("Emulator", systemImage: "iphone")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+
+                // Walk Card
+                GroupBox {
+                    VStack(spacing: 14) {
+                        HStack(spacing: 12) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "figure.walk")
+                                    .foregroundStyle(.blue)
+                                Text("Steps:")
+                                    .font(.subheadline)
+                            }
+                            TextField("Steps", value: $stepInput, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 100)
+                                .disabled(walk.isWalking)
+
+                            Spacer()
+
+                            if walk.isWalking {
+                                Text(walk.elapsedText)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(.blue.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
+
+                            Button {
+                                if walk.isWalking {
+                                    appState.walkSimulator.stop()
+                                } else {
+                                    walk.totalSteps = stepInput
+                                    appState.walkSimulator.start()
+                                }
+                            } label: {
+                                Label(walk.isWalking ? "Stop" : "Start Walk",
+                                      systemImage: walk.isWalking ? "stop.fill" : "figure.walk")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(walk.isWalking ? .orange : .blue)
+                            .disabled(emu.state != .running)
+                        }
+
+                        if walk.isWalking {
+                            VStack(spacing: 10) {
+                                ProgressView(value: walk.progress)
+                                    .progressViewStyle(.linear)
+                                    .tint(.blue)
+
+                                HStack {
+                                    Label("\(walk.currentStep)", systemImage: "shoeprints.fill")
+                                        .monospacedDigit()
+                                    Text("/ \(walk.totalSteps)")
+                                        .foregroundStyle(.secondary)
+                                        .monospacedDigit()
+                                    Spacer()
+                                    Text(walk.phase.rawValue)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 2)
+                                        .background(walk.phase == .wandering ? .green.opacity(0.15) : .orange.opacity(0.15))
+                                        .clipShape(Capsule())
+                                    Spacer()
+                                    Text(walk.percentText)
+                                        .fontWeight(.medium)
+                                        .monospacedDigit()
+                                }
+                                .font(.caption)
+
+                                HStack(spacing: 4) {
+                                    Image(systemName: "location.fill")
+                                        .foregroundStyle(.blue)
+                                        .font(.caption2)
+                                    Text("\(walk.latitude, specifier: "%.6f"), \(walk.longitude, specifier: "%.6f")")
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                }
                             }
                         }
 
                         // Walk log
-                        Divider()
-                        HStack {
-                            Text("Walk Log")
-                                .font(.caption.bold())
-                            Spacer()
-                            Text("\(walk.logEntries.count) entries")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
+                        if walk.isWalking || !walk.logEntries.isEmpty {
+                            Divider()
+                            HStack {
+                                Label("Walk Log", systemImage: "list.bullet.rectangle")
+                                    .font(.caption.bold())
+                                Spacer()
+                                Text("\(walk.logEntries.count) entries")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
 
-                        ScrollViewReader { proxy in
-                            ScrollView {
-                                LazyVStack(alignment: .leading, spacing: 2) {
-                                    ForEach(walk.logEntries) { entry in
-                                        HStack(spacing: 8) {
-                                            Text(formatTime(entry.timestamp))
-                                                .frame(width: 65, alignment: .leading)
-                                            Text("Step \(entry.step)")
-                                                .frame(width: 80, alignment: .leading)
-                                            Text(entry.phase.rawValue)
-                                                .frame(width: 70, alignment: .leading)
-                                                .foregroundStyle(.secondary)
-                                            Text("\(entry.latitude, specifier: "%.5f"), \(entry.longitude, specifier: "%.5f")")
-                                                .foregroundStyle(.secondary)
+                            ScrollViewReader { proxy in
+                                ScrollView {
+                                    LazyVStack(alignment: .leading, spacing: 3) {
+                                        ForEach(walk.logEntries) { entry in
+                                            HStack(spacing: 8) {
+                                                Text(formatTime(entry.timestamp))
+                                                    .frame(width: 60, alignment: .leading)
+                                                    .foregroundStyle(.secondary)
+                                                Text("Step \(entry.step)")
+                                                    .frame(width: 75, alignment: .leading)
+                                                    .fontWeight(.medium)
+                                                Text(entry.phase.rawValue)
+                                                    .frame(width: 65, alignment: .leading)
+                                                    .foregroundStyle(entry.phase == .wandering ? .green : .orange)
+                                                Text("\(entry.latitude, specifier: "%.5f"), \(entry.longitude, specifier: "%.5f")")
+                                                    .foregroundStyle(.tertiary)
+                                            }
+                                            .font(.system(.caption2, design: .monospaced))
+                                            .id(entry.id)
                                         }
-                                        .font(.system(.caption2, design: .monospaced))
-                                        .id(entry.id)
+                                    }
+                                    .padding(8)
+                                }
+                                .onChange(of: walk.logEntries.count) { _, _ in
+                                    if let last = walk.logEntries.last {
+                                        proxy.scrollTo(last.id, anchor: .bottom)
                                     }
                                 }
-                                .padding(6)
                             }
-                            .onChange(of: walk.logEntries.count) { _, _ in
-                                if let last = walk.logEntries.last {
-                                    proxy.scrollTo(last.id, anchor: .bottom)
-                                }
-                            }
+                            .frame(maxHeight: 160)
+                            .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                            )
                         }
-                        .frame(maxHeight: 150)
-                        .background(.black.opacity(0.03))
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
+                } label: {
+                    Label("Walk Simulation", systemImage: "figure.walk")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
                 }
-            }
-            .padding(16)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
 
-            Spacer()
+                // Help Card
+                GroupBox {
+                    DisclosureGroup(isExpanded: $showHelp) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            helpSection(
+                                icon: "location.fill",
+                                title: "Setting GPS Location",
+                                steps: [
+                                    "Click the \"...\" button on the emulator toolbar",
+                                    "Click \"Location\" in the left sidebar",
+                                    "Enter coordinates or click on the map",
+                                    "Click \"Set Location\"",
+                                    "Tip: Click \"SAVE POINT\" to save locations for later"
+                                ]
+                            )
+
+                            Divider()
+
+                            helpSection(
+                                icon: "keyboard",
+                                title: "Date of Birth Input",
+                                steps: [
+                                    "Pikmin Bloom uses a custom keyboard that doesn't work in the emulator",
+                                    "Tap and hold the date field in the emulator (~1 second)",
+                                    "Type the date as digits in the panel above (e.g. 01011990)",
+                                    "Click Send"
+                                ]
+                            )
+
+                            Divider()
+
+                            helpSection(
+                                icon: "exclamationmark.triangle",
+                                title: "Important",
+                                steps: [
+                                    "Log out of Pikmin Bloom on your phone before logging in on the emulator",
+                                    "Only use one device at a time to avoid account issues"
+                                ]
+                            )
+                        }
+                        .padding(.top, 8)
+                    } label: {
+                        Text(showHelp ? "Hide Instructions" : "Show Instructions")
+                            .font(.subheadline)
+                    }
+                } label: {
+                    Label("Help", systemImage: "questionmark.circle")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+
+                Spacer(minLength: 16)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             appState.emulatorManager.detectRunning()
         }
@@ -186,9 +302,9 @@ struct MainView: View {
 
     private func emuButtonTitle(_ state: EmulatorState) -> String {
         switch state {
-        case .stopped: return "Start Emulator"
+        case .stopped: return "Start"
         case .booting: return "Starting..."
-        case .running: return "Stop Emulator"
+        case .running: return "Stop"
         }
     }
 
@@ -198,14 +314,29 @@ struct MainView: View {
         return fmt.string(from: date)
     }
 
+    private func helpSection(icon: String, title: String, steps: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(title, systemImage: icon)
+                .font(.caption.bold())
+            ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                HStack(alignment: .top, spacing: 6) {
+                    Text("\(index + 1).")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 14, alignment: .trailing)
+                    Text(step)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
     private func sendTextToEmulator(_ text: String) {
         let adb = ADBHelper(sdkDir: appState.sdkDir)
         let digits = text.filter { $0.isNumber }
         guard !digits.isEmpty else { return }
         Task.detached {
-            // Long press the date field to activate NativeKeyboard's EditText
-            _ = try? adb.run("shell", "input", "swipe", "540", "590", "540", "590", "500")
-            try? await Task.sleep(for: .seconds(1))
             // Clear existing content
             for _ in 0..<20 {
                 _ = try? adb.run("shell", "input", "keyevent", "67")
