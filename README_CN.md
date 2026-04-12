@@ -1,25 +1,25 @@
 # Pikimin
 
-一款 macOS 应用，封装 Android 模拟器用于 Pikmin Bloom 自动行走模拟。安装应用，指向你的 Android SDK，即可开始刷步数——无需了解 Android Studio。
+一款 macOS 應用程式，封裝 Android 模擬器用於 Pikmin Bloom 自動行走模擬。安裝應用程式，指向你的 Android SDK，即可開始刷步數——無需了解 Android Studio。
 
-**仅支持 Apple Silicon (M1+)。需要 macOS 14 Sonoma 或更高版本。**
+**僅支援 Apple Silicon (M1+)。需要 macOS 14 Sonoma 或更高版本。**
 
 ## 功能
 
-- 自动检测已安装的 Android SDK（Android Studio 或 Homebrew）
-- 创建和管理 Android 模拟器（Pixel 7，支持 Play Store）
-- 模拟真实行走，包含 GPS 移动和步数传感器检测
-- 实时仪表盘显示步数、进度、GPS 坐标和行走日志
+- 自動偵測已安裝的 Android SDK（Android Studio 或 Homebrew）
+- 建立和管理 Android 模擬器（Pixel 7，支援 Play Store）
+- 模擬真實行走，包含 GPS 移動和步數感測器偵測
+- 即時儀表板顯示步數、進度、GPS 座標和行走日誌
 
-## 安装
+## 安裝
 
-### 1. 安装 Android SDK
+### 1. 安裝 Android SDK
 
-**方式 A：Android Studio（推荐）**
+**方式 A：Android Studio（推薦）**
 
-从 [developer.android.com/studio](https://developer.android.com/studio) 下载安装。打开一次完成初始设置，然后通过 SDK Manager 安装系统镜像：
+從 [developer.android.com/studio](https://developer.android.com/studio) 下載安裝。開啟一次完成初始設定，然後透過 SDK Manager 安裝系統映像：
 - SDK Platforms > Android 16.0 (Baklava) 或 Android 15.0 (API 35)
-- 确保勾选 "Google Play ARM 64 v8a System Image"
+- 確保勾選 "Google Play ARM 64 v8a System Image"
 
 **方式 B：Homebrew**
 
@@ -29,71 +29,71 @@ sdkmanager "platform-tools" "emulator" \
   "system-images;android-36.0-Baklava;google_apis_playstore;arm64-v8a"
 ```
 
-### 2. 安装 Pikimin
+### 2. 安裝 Pikimin
 
-从 [Releases](https://github.com/hsuanchenlin/pikimin/releases) 下载 `Pikimin.dmg`，打开后将 `Pikimin.app` 拖入"应用程序"文件夹。
+從 [Releases](https://github.com/hsuanchenlin/pikimin/releases) 下載 `Pikimin.dmg`，開啟後將 `Pikimin.app` 拖入「應用程式」資料夾。
 
-首次启动：右键点击应用 > 打开（用于绕过 Gatekeeper，因为应用使用 ad-hoc 签名）。
+首次啟動：右鍵點擊應用程式 > 打開（用於繞過 Gatekeeper，因為應用程式使用 ad-hoc 簽署）。
 
 ### 3. 使用
 
-1. 打开 Pikimin — 自动检测你的 SDK
-2. 点击 **Start Emulator** — 等待模拟器启动
-3. 在模拟器中打开 Play Store，安装 Pikmin Bloom
-4. 设置 GPS 位置（见下方说明）
-5. 点击 **Start Walk** — 开始刷步数
+1. 開啟 Pikimin — 自動偵測你的 SDK
+2. 點擊 **Start Emulator** — 等待模擬器啟動
+3. 在模擬器中開啟 Play Store，安裝 Pikmin Bloom
+4. 設定 GPS 位置（見下方說明）
+5. 點擊 **Start Walk** — 開始刷步數
 
-### 设置 GPS 位置
+### 設定 GPS 位置
 
-开始行走前，需要在模拟器中设置起始位置：
+開始行走前，需要在模擬器中設定起始位置：
 
-**第 1 步：** 点击模拟器工具栏上的 **`...`**（三个点）按钮，打开 Extended Controls
+**步驟 1：** 點擊模擬器工具列上的 **`...`**（三個點）按鈕，開啟 Extended Controls
 
 <img src="docs/images/step1-click-dots.png" width="300">
 
-**第 2 步：** 点击左侧边栏的 **Location**
+**步驟 2：** 點擊左側邊欄的 **Location**
 
 <img src="docs/images/step2-click-location.png" width="600">
 
-**第 3 步：** 输入经纬度（或在地图上点击），然后点击 **Set Location**
+**步驟 3：** 輸入經緯度（或在地圖上點擊），然後點擊 **Set Location**
 
 <img src="docs/images/step3-set-location.png" width="600">
 
-行走模拟会以此位置为起点向外行走，后半程返回起点。
+行走模擬會以此位置為起點向外行走，後半程返回起點。
 
 ## 功能列表
 
-- **SDK 检测** — 自动查找 `~/Library/Android/sdk`（Android Studio）或 `/opt/homebrew/share/android-commandlinetools`（Homebrew）中的 Android SDK
-- **模拟器管理** — 一键启动/停止，自动检测已运行的模拟器
-- **行走模拟** — 可配置步数，真实步态周期（加速度计 + 陀螺仪），随机 GPS 移动并自动返回
-- **实时仪表盘** — 实时步数、进度条、行走阶段、GPS 坐标、已用时间
-- **行走日志** — 每 50 步记录一条带时间戳的日志
-- **文本输入助手** — 向模拟器发送文本，用于不接受键盘输入的字段（如 Pikmin Bloom 的出生日期）
-- **DNS 修复** — 模拟器启动时使用 `-dns-server 8.8.8.8` 避免网络连接问题
+- **SDK 偵測** — 自動尋找 `~/Library/Android/sdk`（Android Studio）或 `/opt/homebrew/share/android-commandlinetools`（Homebrew）中的 Android SDK
+- **模擬器管理** — 一鍵啟動/停止，自動偵測已執行的模擬器
+- **行走模擬** — 可設定步數，真實步態週期（加速度計 + 陀螺儀），隨機 GPS 移動並自動返回
+- **即時儀表板** — 即時步數、進度條、行走階段、GPS 座標、已用時間
+- **行走日誌** — 每 50 步記錄一條帶時間戳的日誌
+- **文字輸入助手** — 向模擬器傳送文字，用於不接受鍵盤輸入的欄位（如 Pikmin Bloom 的出生日期）
+- **DNS 修復** — 模擬器啟動時使用 `-dns-server 8.8.8.8` 避免網路連線問題
 
-## 从源码构建
+## 從原始碼建置
 
 ```bash
 cd Pikimin
 swift build
-./scripts/dev-run.sh    # 构建并以 .app 包启动
-./scripts/create-dmg.sh # 构建发布版 DMG
+./scripts/dev-run.sh    # 建置並以 .app 套件啟動
+./scripts/create-dmg.sh # 建置發行版 DMG
 ```
 
-## 行走模拟原理
+## 行走模擬原理
 
-每个步态周期（约 500ms）通过 `adb emu sensor set` 发送 7 次传感器更新：
+每個步態週期（約 500ms）透過 `adb emu sensor set` 傳送 7 次感測器更新：
 
-1. **摆动** — Z 轴降至重力以下
-2. **脚跟着地** — Z 轴飙升至 22 m/s²（步数检测的关键触发点）
-3. **冲击峰值** — Z 轴达到 25 m/s²
-4. **缓冲** — 减速回到重力附近
-5. **站立中期** — 重力基线（步数检测器需要这个低谷）
-6. **脚尖蹬地** — 较小的二次峰值
-7. **静止** — 回到 9.8 m/s²
+1. **擺動** — Z 軸降至重力以下
+2. **腳跟著地** — Z 軸飆升至 22 m/s²（步數偵測的關鍵觸發點）
+3. **衝擊峰值** — Z 軸達到 25 m/s²
+4. **緩衝** — 減速回到重力附近
+5. **站立中期** — 重力基線（步數偵測器需要這個低谷）
+6. **腳尖蹬地** — 較小的二次峰值
+7. **靜止** — 回到 9.8 m/s²
 
-GPS 坐标每步更新一次（约 1.5m/步），按随机行走模式移动，后半程返回起点。
+GPS 座標每步更新一次（約 1.5m/步），按隨機行走模式移動，後半程返回起點。
 
-## 许可证
+## 授權條款
 
 MIT

@@ -1,6 +1,6 @@
 # Pikimin
 
-[中文版](README_CN.md)
+[繁體中文](README_CN.md)
 
 A macOS app that wraps the Android emulator for Pikmin Bloom walk simulation. Install the app, point it at your Android SDK, and start walking — no Android Studio knowledge required.
 
