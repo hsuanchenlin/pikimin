@@ -70,6 +70,10 @@ Before starting a walk, you need to set a starting location in the emulator:
 
 <img src="docs/images/step3-set-location.png" width="600">
 
+**Tip:** You can click **SAVE POINT** to save frequently used locations for quick access later.
+
+<img src="docs/images/step4-save-point.png" width="600">
+
 The walk simulation will read this location as the starting point and walk outward from it, then return in the second half.
 
 ## Features

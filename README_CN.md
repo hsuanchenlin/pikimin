@@ -68,6 +68,10 @@ sdkmanager "platform-tools" "emulator" \
 
 <img src="docs/images/step3-set-location.png" width="600">
 
+**提示：** 你可以點擊 **SAVE POINT** 儲存常用位置，方便日後快速使用。
+
+<img src="docs/images/step4-save-point.png" width="600">
+
 行走模擬會以此位置為起點向外行走，後半程返回起點。
 
 ## 功能列表
