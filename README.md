@@ -45,11 +45,14 @@ Since the app is ad-hoc signed (not from the App Store), macOS will block it on 
 
 ### 3. Use
 
+> **Important:** Log out of Pikmin Bloom on your phone before logging in on the emulator. It is unknown what happens if multiple devices are logged in simultaneously — to be safe, only use one device at a time.
+
 1. Open Pikimin — it detects your SDK automatically
 2. Click **Start Emulator** — wait for it to boot
 3. In the emulator, open Play Store and install Pikmin Bloom
-4. Set a GPS location (see below)
-5. Click **Start Walk** — watch the steps roll in
+4. Log in with your Pikmin Bloom account
+5. Set a GPS location (see below)
+6. Click **Start Walk** — watch the steps roll in
 
 ### Setting GPS Location
 

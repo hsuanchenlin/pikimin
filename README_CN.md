@@ -43,11 +43,14 @@ sdkmanager "platform-tools" "emulator" \
 
 ### 3. 使用
 
+> **重要提醒：** 在模擬器上登入 Pikmin Bloom 之前，請先在手機上登出帳號。目前不確定同時在多台裝置上登入會發生什麼情況——為安全起見，請一次只使用一台裝置。
+
 1. 開啟 Pikimin — 自動偵測你的 SDK
 2. 點擊 **Start Emulator** — 等待模擬器啟動
 3. 在模擬器中開啟 Play Store，安裝 Pikmin Bloom
-4. 設定 GPS 位置（見下方說明）
-5. 點擊 **Start Walk** — 開始刷步數
+4. 登入你的 Pikmin Bloom 帳號
+5. 設定 GPS 位置（見下方說明）
+6. 點擊 **Start Walk** — 開始刷步數
 
 ### 設定 GPS 位置
 
