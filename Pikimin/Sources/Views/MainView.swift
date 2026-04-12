@@ -252,7 +252,8 @@ struct MainView: View {
                                 icon: "keyboard",
                                 title: "Date of Birth Input",
                                 steps: [
-                                    "Tap the date field in the emulator — a numpad should appear",
+                                    "If the numpad doesn't appear: go to emulator Settings > System > Keyboard > On-screen keyboard > turn off ADB Keyboard",
+                                    "Tap the date field in Pikmin Bloom — a numpad should appear",
                                     "Type the date as digits in the panel above (e.g. 01011990)",
                                     "Click Send"
                                 ]

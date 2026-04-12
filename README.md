@@ -82,8 +82,26 @@ Pikmin Bloom uses a custom keyboard for the date of birth field. The standard ke
 
 <img src="docs/images/date-of-birth-issue.png" width="300">
 
-To solve this:
-1. **Tap and hold** the date field in the emulator (long press for ~1 second) until you see a cursor appear
+To solve this, first disable ADB Keyboard in the emulator settings:
+
+**Step 1.** Open **Settings > System** in the emulator
+
+<img src="docs/images/kb-step1-settings-system.png" width="300">
+
+**Step 2.** Go to **Keyboard**
+
+<img src="docs/images/kb-step2-keyboard.png" width="300">
+
+**Step 3.** Tap **On-screen keyboard**
+
+<img src="docs/images/kb-step3-onscreen-keyboard.png" width="300">
+
+**Step 4.** Turn off **ADB Keyboard** (keep Gboard enabled)
+
+<img src="docs/images/kb-step4-disable-adb.png" width="300">
+
+Then go back to Pikmin Bloom:
+1. Tap the date field — a numpad should appear
 2. In the Pikimin control panel, enter your date as digits (e.g. `01011990` for 01/01/1990) in the **"Type into emulator"** field
 3. Click **Send**
 
