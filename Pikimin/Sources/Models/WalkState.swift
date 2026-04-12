@@ -46,30 +46,30 @@ enum WalkSpeed: String, CaseIterable {
     /// GPS step size in degrees (~meters per step)
     var gpsStep: Double {
         switch self {
-        case .slow: return 0.000008     // ~0.9m
-        case .normal: return 0.000014   // ~1.5m
-        case .fast: return 0.000025     // ~2.8m
-        case .sprint: return 0.000045   // ~5.0m
+        case .slow: return 0.000008     // ~0.9m  → ~3 km/h
+        case .normal: return 0.000014   // ~1.5m  → ~5 km/h
+        case .fast: return 0.000022     // ~2.4m  → ~9 km/h
+        case .sprint: return 0.000018   // ~2.0m  → ~14 km/h (faster cadence)
         }
     }
 
     /// Delay between gait phases in ms
     var gaitDelay: Int {
         switch self {
-        case .slow: return 80
-        case .normal: return 50
-        case .fast: return 30
-        case .sprint: return 15
+        case .slow: return 80           // ~1.5 steps/sec
+        case .normal: return 50         // ~2 steps/sec
+        case .fast: return 40           // ~2.5 steps/sec
+        case .sprint: return 25         // ~3.5 steps/sec
         }
     }
 
     /// Rest delay in ms
     var restDelay: Int {
         switch self {
-        case .slow: return 150
-        case .normal: return 100
-        case .fast: return 60
-        case .sprint: return 30
+        case .slow: return 150          // ~1.5 steps/sec
+        case .normal: return 100        // ~2 steps/sec
+        case .fast: return 50           // ~2.5 steps/sec
+        case .sprint: return 30         // ~3.5 steps/sec
         }
     }
 }
