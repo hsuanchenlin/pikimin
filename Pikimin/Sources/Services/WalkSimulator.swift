@@ -74,7 +74,7 @@ final class WalkSimulator {
         let halfSteps = totalSteps / 2
         var direction = Int.random(in: 0..<8)
         var stepsInDir = 0
-        var dirLength = Int.random(in: 30...150)
+        var dirLength = Int.random(in: 200...500)
 
         for step in 1...totalSteps {
             if Task.isCancelled { break }
@@ -83,16 +83,18 @@ final class WalkSimulator {
             stepsInDir += 1
             if stepsInDir >= dirLength {
                 stepsInDir = 0
-                dirLength = Int.random(in: 30...150)
-                direction = Int.random(in: 0..<8)
+                dirLength = Int.random(in: 200...500)
+                // Turn by 1-2 directions max for smooth curves
+                let turn = Int.random(in: -2...2)
+                direction = (direction + turn + 8) % 8
             }
 
             moveInDirection(direction, lat: &lat, lon: &lon, gpsStep: gpsStep)
 
             if step > halfSteps {
                 let remaining = Double(totalSteps - step + 1)
-                lat += (baseLat - lat) / (remaining * 3)
-                lon += (baseLon - lon) / (remaining * 3)
+                lat += (baseLat - lat) / (remaining * 2)
+                lon += (baseLon - lon) / (remaining * 2)
             }
 
             await doStep(step: step, lat: lat, lon: lon, gaitDelay: gaitDelay, restDelay: restDelay)
@@ -150,23 +152,27 @@ final class WalkSimulator {
     // MARK: - Shared
 
     private func moveInDirection(_ dir: Int, lat: inout Double, lon: inout Double, gpsStep: Double) {
-        let wobble = Double.random(in: -0.000005...0.000005)
+        // No wobble — smooth straight movement
         switch dir {
-        case 0: lat += gpsStep;           lon += wobble
-        case 1: lat += gpsStep * 0.7;     lon += gpsStep * 0.7
-        case 2: lon += gpsStep;           lat += wobble
-        case 3: lat -= gpsStep * 0.7;     lon += gpsStep * 0.7
-        case 4: lat -= gpsStep;           lon += wobble
-        case 5: lat += gpsStep * 0.7;     lon -= gpsStep * 0.7
-        case 6: lon -= gpsStep;           lat += wobble
-        case 7: lat -= gpsStep * 0.7;     lon -= gpsStep * 0.7
+        case 0: lat += gpsStep                                     // N
+        case 1: lat += gpsStep * 0.7;     lon += gpsStep * 0.7    // NE
+        case 2: lon += gpsStep                                     // E
+        case 3: lat -= gpsStep * 0.7;     lon += gpsStep * 0.7    // SE
+        case 4: lat -= gpsStep                                     // S
+        case 5: lat += gpsStep * 0.7;     lon -= gpsStep * 0.7    // SW
+        case 6: lon -= gpsStep                                     // W
+        case 7: lat -= gpsStep * 0.7;     lon -= gpsStep * 0.7    // NW
         default: break
         }
     }
 
     private func doStep(step: Int, lat: Double, lon: Double, gaitDelay: Int, restDelay: Int) async {
-        try? adb.geoFix(longitude: lon, latitude: lat)
+        // Only update GPS every 3 steps (~1 update per second) to avoid jitter
+        if step % 3 == 0 || step == 1 {
+            try? adb.geoFix(longitude: lon, latitude: lat)
+        }
 
+        // Gait cycle — sensor updates for step detection
         try? adb.setAcceleration(0.3, 0.4, 5.0)
         try? adb.setGyroscope(0.2, 0.3, 0.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
