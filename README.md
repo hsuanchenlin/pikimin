@@ -35,7 +35,13 @@ sdkmanager "platform-tools" "emulator" \
 
 Download `Pikimin.dmg` from [Releases](https://github.com/hsuanchenlin/pikimin/releases), open it, and drag `Pikimin.app` to Applications.
 
-First launch: right-click the app > Open (to bypass Gatekeeper since the app is ad-hoc signed).
+Since the app is ad-hoc signed (not from the App Store), macOS will block it on first launch. To allow it:
+
+1. Double-click `Pikimin.app` — macOS will show a warning that it can't be opened
+2. Go to **System Settings > Privacy & Security**
+3. Scroll down to the **Security** section — you'll see a message about Pikimin being blocked
+4. Click **Open Anyway**
+5. Confirm in the dialog that appears
 
 ### 3. Use
 

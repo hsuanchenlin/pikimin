@@ -33,7 +33,13 @@ sdkmanager "platform-tools" "emulator" \
 
 從 [Releases](https://github.com/hsuanchenlin/pikimin/releases) 下載 `Pikimin.dmg`，開啟後將 `Pikimin.app` 拖入「應用程式」資料夾。
 
-首次啟動：右鍵點擊應用程式 > 打開（用於繞過 Gatekeeper，因為應用程式使用 ad-hoc 簽署）。
+由於應用程式使用 ad-hoc 簽署（非 App Store 來源），macOS 會在首次啟動時阻擋。允許方式如下：
+
+1. 雙擊 `Pikimin.app` — macOS 會顯示無法開啟的警告
+2. 前往 **系統設定 > 隱私權與安全性**
+3. 向下捲動到 **安全性** 區塊 — 你會看到 Pikimin 被阻擋的訊息
+4. 點擊 **強制打開**
+5. 在彈出的對話框中確認
 
 ### 3. 使用
 
