@@ -49,11 +49,17 @@ First launch: right-click the app > Open (to bypass Gatekeeper since the app is 
 
 Before starting a walk, you need to set a starting location in the emulator:
 
-1. Click the **`...`** (three dots) button on the emulator toolbar to open **Extended Controls**
-2. Go to the **Location** tab
-3. Enter latitude and longitude (e.g. `51.9327, 4.5022` for Rotterdam), or search for a place name
-4. Click **Set Location**
-5. You should see the location update in Google Maps or Pikmin Bloom inside the emulator
+**Step 1.** Click the **`...`** (three dots) button on the emulator toolbar to open Extended Controls
+
+<img src="docs/images/step1-click-dots.png" width="300">
+
+**Step 2.** Click **Location** in the left sidebar
+
+<img src="docs/images/step2-click-location.png" width="600">
+
+**Step 3.** Enter latitude and longitude (or click on the map), then click **Set Location**
+
+<img src="docs/images/step3-set-location.png" width="600">
 
 The walk simulation will read this location as the starting point and walk outward from it, then return in the second half.
 

@@ -47,11 +47,17 @@ sdkmanager "platform-tools" "emulator" \
 
 开始行走前，需要在模拟器中设置起始位置：
 
-1. 点击模拟器工具栏上的 **`...`**（三个点）按钮，打开 **Extended Controls**
-2. 进入 **Location** 标签页
-3. 输入经纬度（例如 `39.9042, 116.4074` 为北京），或搜索地名
-4. 点击 **Set Location**
-5. 你应该能在模拟器中的 Google Maps 或 Pikmin Bloom 中看到位置更新
+**第 1 步：** 点击模拟器工具栏上的 **`...`**（三个点）按钮，打开 Extended Controls
+
+<img src="docs/images/step1-click-dots.png" width="300">
+
+**第 2 步：** 点击左侧边栏的 **Location**
+
+<img src="docs/images/step2-click-location.png" width="600">
+
+**第 3 步：** 输入经纬度（或在地图上点击），然后点击 **Set Location**
+
+<img src="docs/images/step3-set-location.png" width="600">
 
 行走模拟会以此位置为起点向外行走，后半程返回起点。
 
