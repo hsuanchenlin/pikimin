@@ -7,8 +7,6 @@ BUILD_DIR="$PROJECT_DIR/.build/release"
 DMG_DIR="$PROJECT_DIR/.build/dmg"
 APP_NAME="Pikimin"
 DMG_NAME="Pikimin.dmg"
-DMG_TMP="$PROJECT_DIR/.build/tmp.dmg"
-VOL_NAME="$APP_NAME"
 
 echo "Building release binary..."
 cd "$PROJECT_DIR"
@@ -62,53 +60,23 @@ cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
 PLIST
 
 codesign --force --sign - "$DMG_DIR/$APP_NAME.app"
-ln -sf /Applications "$DMG_DIR/Applications"
 
 echo "Creating DMG..."
-rm -f "$DMG_TMP" "$PROJECT_DIR/$DMG_NAME"
+rm -f "$PROJECT_DIR/$DMG_NAME"
 
-hdiutil create \
-    -volname "$VOL_NAME" \
-    -srcfolder "$DMG_DIR" \
-    -ov \
-    -format UDRW \
-    -size 10m \
-    "$DMG_TMP"
-
-DEVICE=$(hdiutil attach "$DMG_TMP" -readwrite -noverify | grep "Apple_APFS\|Apple_HFS" | head -1 | awk '{print $1}')
-sleep 3
-
-# Set icon positions and window size
-osascript << EOF
-tell application "Finder"
-    tell disk "$VOL_NAME"
-        open
-        set current view of container window to icon view
-        set toolbar visible of container window to false
-        set statusbar visible of container window to false
-        set bounds of container window to {200, 200, 680, 440}
-
-        set theViewOptions to icon view options of container window
-        set arrangement of theViewOptions to not arranged
-        set icon size of theViewOptions to 96
-
-        set position of item "${APP_NAME}.app" of container window to {120, 120}
-        set position of item "Applications" of container window to {360, 120}
-
-        update without registering applications
-        delay 2
-        close
-    end tell
-end tell
-EOF
-
-sync
-sleep 1
-hdiutil detach "$DEVICE" -force 2>/dev/null || hdiutil detach "/Volumes/$VOL_NAME" -force 2>/dev/null || true
-sleep 1
-
-hdiutil convert "$DMG_TMP" -format UDZO -o "$PROJECT_DIR/$DMG_NAME"
-rm -f "$DMG_TMP"
+create-dmg \
+    --volname "$APP_NAME" \
+    --volicon "$PROJECT_DIR/Resources/AppIcon.icns" \
+    --background "$PROJECT_DIR/Resources/dmg-background.png" \
+    --window-pos 200 120 \
+    --window-size 660 400 \
+    --icon-size 96 \
+    --icon "$APP_NAME.app" 165 170 \
+    --app-drop-link 495 170 \
+    --text-size 14 \
+    --no-internet-enable \
+    "$PROJECT_DIR/$DMG_NAME" \
+    "$DMG_DIR"
 
 echo ""
 echo "Done! Created: $PROJECT_DIR/$DMG_NAME"

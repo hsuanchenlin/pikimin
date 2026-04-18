@@ -8,6 +8,10 @@ struct MainView: View {
     @State private var showHelp: Bool = false
     @State private var showSaveDialog: Bool = false
     @State private var savePointName: String = ""
+    @State private var showEditDialog: Bool = false
+    @State private var editingPoint: SavedPoint?
+    @State private var editPointName: String = ""
+    @State private var editPointCoords: String = ""
 
     var body: some View {
         let emu = appState.emulatorManager
@@ -184,6 +188,15 @@ struct MainView: View {
                                                     }
                                                     .buttonStyle(.bordered)
                                                     .contextMenu {
+                                                        Button {
+                                                            editingPoint = point
+                                                            editPointName = point.name
+                                                            editPointCoords = point.coordsString
+                                                            showEditDialog = true
+                                                        } label: {
+                                                            Label("Edit", systemImage: "pencil")
+                                                        }
+                                                        Divider()
                                                         Button(role: .destructive) {
                                                             deletePoint(point)
                                                         } label: {
@@ -404,6 +417,18 @@ struct MainView: View {
         } message: {
             Text("Enter a name for this location")
         }
+        .alert("Edit Location", isPresented: $showEditDialog) {
+            TextField("Name", text: $editPointName)
+            TextField("Coordinates (lat, lon)", text: $editPointCoords)
+            Button("Save") {
+                if let point = editingPoint {
+                    updatePoint(point, name: editPointName, coords: editPointCoords)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Edit the name or coordinates")
+        }
     }
 
     private func phaseColor(_ phase: WalkPhase) -> Color {
@@ -468,6 +493,19 @@ struct MainView: View {
     private func deletePoint(_ point: SavedPoint) {
         appState.walkState.savedPoints.removeAll { $0.id == point.id }
         SavedPoint.save(appState.walkState.savedPoints)
+    }
+
+    private func updatePoint(_ point: SavedPoint, name: String, coords: String) {
+        let parts = coords.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2,
+              let lat = Double(parts[0]),
+              let lon = Double(parts[1]) else { return }
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        let newName = trimmedName.isEmpty ? String(format: "%.4f, %.4f", lat, lon) : trimmedName
+        if let index = appState.walkState.savedPoints.firstIndex(where: { $0.id == point.id }) {
+            appState.walkState.savedPoints[index] = SavedPoint(id: point.id, name: newName, latitude: lat, longitude: lon)
+            SavedPoint.save(appState.walkState.savedPoints)
+        }
     }
 
     private func sendTextToEmulator(_ text: String) {
