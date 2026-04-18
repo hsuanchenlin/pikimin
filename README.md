@@ -109,7 +109,13 @@ Then go back to Pikmin Bloom:
 
 - **SDK Detection** — automatically finds Android SDK at `~/Library/Android/sdk` (Android Studio) or `/opt/homebrew/share/android-commandlinetools` (Homebrew)
 - **Emulator Management** — start/stop with one click, auto-detects already-running emulators
-- **Walk Simulation** — configurable step count, realistic gait cycle (accelerometer + gyroscope), random GPS movement with return-to-home
+- **Walk Simulation** — three walk modes:
+  - **Random Walk** — wander randomly, return to start in second half
+  - **Fixed Direction** — walk in a chosen compass direction (N, NE, E, SE, S, SW, W, NW)
+  - **Walk to Destination** — enter coordinates and walk straight there, with ETA and distance display
+- **Walk Speed** — four speed options:
+  - Slow (3 km/h), Normal (8 km/h), Fast (12 km/h), Sprint (15 km/h)
+- **Saved Locations** — save, edit, and delete favorite GPS coordinates for quick reuse
 - **Live Dashboard** — real-time step count, progress bar, phase indicator, GPS coordinates, elapsed time
 - **Walk Log** — timestamped entries every 50 steps
 - **Text Input Helper** — send text to the emulator for fields that don't accept keyboard input (e.g. Pikmin Bloom's date of birth)
