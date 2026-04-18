@@ -4,6 +4,7 @@ struct MainView: View {
     @Environment(AppState.self) private var appState
     @State private var stepInput: Int = 50_000
     @State private var dateText: String = ""
+    @State private var coordsInput: String = ""
     @State private var showHelp: Bool = false
 
     var body: some View {
@@ -145,11 +146,11 @@ struct MainView: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "mappin")
                                         .foregroundStyle(.blue)
-                                    TextField("lat, lon (e.g. 37.3239, -121.8950)", text: Binding(
-                                        get: { walk.destCoords },
-                                        set: { walk.destCoords = $0 }
-                                    ))
+                                    TextField("lat, lon (e.g. 37.3239, -121.8950)", text: $coordsInput)
                                     .textFieldStyle(.roundedBorder)
+                                    .onChange(of: coordsInput) { _, newValue in
+                                        walk.destCoords = newValue
+                                    }
                                     Button {
                                         saveCurrentCoords()
                                     } label: {
@@ -170,6 +171,7 @@ struct MainView: View {
                                             HStack(spacing: 6) {
                                                 ForEach(walk.savedPoints) { point in
                                                     Button {
+                                                        coordsInput = point.coordsString
                                                         walk.destCoords = point.coordsString
                                                     } label: {
                                                         Text(point.name)
