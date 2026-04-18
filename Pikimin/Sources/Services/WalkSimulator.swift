@@ -119,8 +119,7 @@ final class WalkSimulator {
                                   lat: inout Double, lon: inout Double,
                                   totalSteps: Int, gpsStep: Double,
                                   gaitDelay: Int, restDelay: Int) async {
-        guard let destLat = Double(state.destLatitude),
-              let destLon = Double(state.destLongitude) else {
+        guard let dest = state.parsedDestination else {
             state.phase = .idle
             return
         }
@@ -130,8 +129,8 @@ final class WalkSimulator {
             state.phase = .toDestination
 
             // Calculate direction toward destination
-            let dLat = destLat - lat
-            let dLon = destLon - lon
+            let dLat = dest.latitude - lat
+            let dLon = dest.longitude - lon
             let dist = (dLat * dLat + dLon * dLon).squareRoot()
 
             // Reached destination (within ~5m)

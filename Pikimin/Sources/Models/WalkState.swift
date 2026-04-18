@@ -74,6 +74,40 @@ enum WalkSpeed: String, CaseIterable {
     }
 }
 
+struct SavedPoint: Identifiable, Codable {
+    var id = UUID()
+    let name: String
+    let latitude: Double
+    let longitude: Double
+
+    var coordsString: String {
+        "\(latitude), \(longitude)"
+    }
+
+    static func load() -> [SavedPoint] {
+        let url = savedPointsURL
+        guard let data = try? Data(contentsOf: url),
+              let points = try? JSONDecoder().decode([SavedPoint].self, from: data) else {
+            return []
+        }
+        return points
+    }
+
+    static func save(_ points: [SavedPoint]) {
+        let url = savedPointsURL
+        if let data = try? JSONEncoder().encode(points) {
+            try? data.write(to: url)
+        }
+    }
+
+    private static var savedPointsURL: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = base.appendingPathComponent("Pikimin")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("saved_points.json")
+    }
+}
+
 struct WalkLogEntry: Identifiable {
     let id = UUID()
     let timestamp: Date
@@ -99,8 +133,17 @@ final class WalkState {
     var mode: WalkMode = .randomWalk
     var direction: WalkDirection = .north
     var speed: WalkSpeed = .normal
-    var destLatitude: String = ""
-    var destLongitude: String = ""
+    var destCoords: String = ""  // "lat, lon" format
+    var savedPoints: [SavedPoint] = []
+
+    /// Parse destCoords into lat/lon
+    var parsedDestination: (latitude: Double, longitude: Double)? {
+        let parts = destCoords.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2,
+              let lat = Double(parts[0]),
+              let lon = Double(parts[1]) else { return nil }
+        return (lat, lon)
+    }
 
     var progress: Double {
         guard totalSteps > 0 else { return 0 }

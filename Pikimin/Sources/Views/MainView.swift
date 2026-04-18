@@ -141,22 +141,53 @@ struct MainView: View {
                         }
 
                         if walk.mode == .toDestination && !walk.isWalking {
-                            HStack(spacing: 8) {
-                                Text("Destination:")
-                                    .font(.subheadline)
-                                TextField("Latitude", text: Binding(
-                                    get: { walk.destLatitude },
-                                    set: { walk.destLatitude = $0 }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 110)
-                                TextField("Longitude", text: Binding(
-                                    get: { walk.destLongitude },
-                                    set: { walk.destLongitude = $0 }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 110)
-                                Spacer()
+                            VStack(spacing: 8) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "mappin")
+                                        .foregroundStyle(.blue)
+                                    TextField("lat, lon (e.g. 37.3239, -121.8950)", text: Binding(
+                                        get: { walk.destCoords },
+                                        set: { walk.destCoords = $0 }
+                                    ))
+                                    .textFieldStyle(.roundedBorder)
+                                    Button {
+                                        saveCurrentCoords()
+                                    } label: {
+                                        Image(systemName: "star.fill")
+                                            .font(.subheadline)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .disabled(walk.parsedDestination == nil)
+                                    .help("Save to favorites")
+                                }
+
+                                if !walk.savedPoints.isEmpty {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "star")
+                                            .foregroundStyle(.orange)
+                                            .font(.caption)
+                                        ScrollView(.horizontal, showsIndicators: false) {
+                                            HStack(spacing: 6) {
+                                                ForEach(walk.savedPoints) { point in
+                                                    Button {
+                                                        walk.destCoords = point.coordsString
+                                                    } label: {
+                                                        Text(point.name)
+                                                            .font(.caption)
+                                                    }
+                                                    .buttonStyle(.bordered)
+                                                    .contextMenu {
+                                                        Button(role: .destructive) {
+                                                            deletePoint(point)
+                                                        } label: {
+                                                            Label("Delete", systemImage: "trash")
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -355,6 +386,7 @@ struct MainView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             appState.emulatorManager.detectRunning()
+            appState.walkState.savedPoints = SavedPoint.load()
         }
     }
 
@@ -405,6 +437,19 @@ struct MainView: View {
                 }
             }
         }
+    }
+
+    private func saveCurrentCoords() {
+        guard let dest = appState.walkState.parsedDestination else { return }
+        let name = String(format: "%.4f, %.4f", dest.latitude, dest.longitude)
+        let point = SavedPoint(name: name, latitude: dest.latitude, longitude: dest.longitude)
+        appState.walkState.savedPoints.append(point)
+        SavedPoint.save(appState.walkState.savedPoints)
+    }
+
+    private func deletePoint(_ point: SavedPoint) {
+        appState.walkState.savedPoints.removeAll { $0.id == point.id }
+        SavedPoint.save(appState.walkState.savedPoints)
     }
 
     private func sendTextToEmulator(_ text: String) {
