@@ -19,14 +19,10 @@ rm -rf "$DMG_DIR"
 mkdir -p "$DMG_DIR/$APP_NAME.app/Contents/MacOS"
 mkdir -p "$DMG_DIR/$APP_NAME.app/Contents/Resources"
 
-# Copy binary
 cp "$BUILD_DIR/$APP_NAME" "$DMG_DIR/$APP_NAME.app/Contents/MacOS/"
-
-# Copy resources
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
 cp "$PROJECT_DIR/Resources/ADBKeyboard.apk" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
 
-# Create Info.plist
 cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -65,65 +61,52 @@ cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
 </plist>
 PLIST
 
-# Ad-hoc sign
 codesign --force --sign - "$DMG_DIR/$APP_NAME.app"
-
-# Add Applications symlink
 ln -sf /Applications "$DMG_DIR/Applications"
 
-echo "Creating DMG with drag-to-install layout..."
+echo "Creating DMG..."
 rm -f "$DMG_TMP" "$PROJECT_DIR/$DMG_NAME"
 
-# Create a read-write DMG
 hdiutil create \
     -volname "$VOL_NAME" \
     -srcfolder "$DMG_DIR" \
     -ov \
     -format UDRW \
+    -size 10m \
     "$DMG_TMP"
 
-# Mount and customize layout
-MOUNT_DIR=$(hdiutil attach "$DMG_TMP" -readwrite -noverify | grep "/Volumes/$VOL_NAME" | awk '{print $3}')
+DEVICE=$(hdiutil attach "$DMG_TMP" -readwrite -noverify | grep "Apple_APFS\|Apple_HFS" | head -1 | awk '{print $1}')
+sleep 3
 
-# Use AppleScript to set window layout
-# Retry a few times as Finder can be slow to mount
-sleep 2
-osascript << APPLESCRIPT
+# Set icon positions and window size
+osascript << EOF
 tell application "Finder"
     tell disk "$VOL_NAME"
         open
         set current view of container window to icon view
         set toolbar visible of container window to false
         set statusbar visible of container window to false
-        set bounds of container window to {100, 100, 640, 380}
+        set bounds of container window to {200, 200, 680, 440}
+
         set theViewOptions to icon view options of container window
         set arrangement of theViewOptions to not arranged
         set icon size of theViewOptions to 96
-        set position of item "$APP_NAME.app" of container window to {130, 140}
-        close
-        open
+
+        set position of item "${APP_NAME}.app" of container window to {120, 120}
+        set position of item "Applications" of container window to {360, 120}
+
         update without registering applications
         delay 2
         close
     end tell
 end tell
-APPLESCRIPT
-# Position Applications alias manually if AppleScript missed it
-# The symlink still shows up in Finder as a folder icon
-
-# Set volume icon
-if [ -f "$PROJECT_DIR/Resources/AppIcon.icns" ]; then
-    cp "$PROJECT_DIR/Resources/AppIcon.icns" "$MOUNT_DIR/.VolumeIcon.icns"
-    SetFile -c icnC "$MOUNT_DIR/.VolumeIcon.icns" 2>/dev/null || true
-    SetFile -a C "$MOUNT_DIR" 2>/dev/null || true
-fi
+EOF
 
 sync
+sleep 1
+hdiutil detach "$DEVICE" -force 2>/dev/null || hdiutil detach "/Volumes/$VOL_NAME" -force 2>/dev/null || true
+sleep 1
 
-# Unmount
-hdiutil detach "$MOUNT_DIR"
-
-# Convert to compressed read-only DMG
 hdiutil convert "$DMG_TMP" -format UDZO -o "$PROJECT_DIR/$DMG_NAME"
 rm -f "$DMG_TMP"
 
@@ -132,4 +115,3 @@ echo "Done! Created: $PROJECT_DIR/$DMG_NAME"
 echo "Size: $(du -h "$PROJECT_DIR/$DMG_NAME" | cut -f1)"
 echo ""
 echo "To install: open DMG, drag Pikimin.app to Applications."
-echo "First launch: right-click -> Open to bypass Gatekeeper."
