@@ -6,6 +6,8 @@ struct MainView: View {
     @State private var dateText: String = ""
     @State private var coordsInput: String = ""
     @State private var showHelp: Bool = false
+    @State private var showSaveDialog: Bool = false
+    @State private var savePointName: String = ""
 
     var body: some View {
         let emu = appState.emulatorManager
@@ -152,7 +154,10 @@ struct MainView: View {
                                         walk.destCoords = newValue
                                     }
                                     Button {
-                                        saveCurrentCoords()
+                                        if let dest = walk.parsedDestination {
+                                            savePointName = String(format: "%.4f, %.4f", dest.latitude, dest.longitude)
+                                            showSaveDialog = true
+                                        }
                                     } label: {
                                         Image(systemName: "star.fill")
                                             .font(.subheadline)
@@ -390,6 +395,15 @@ struct MainView: View {
             appState.emulatorManager.detectRunning()
             appState.walkState.savedPoints = SavedPoint.load()
         }
+        .alert("Save Location", isPresented: $showSaveDialog) {
+            TextField("Name", text: $savePointName)
+            Button("Save") {
+                saveCurrentCoords(name: savePointName)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enter a name for this location")
+        }
     }
 
     private func phaseColor(_ phase: WalkPhase) -> Color {
@@ -441,10 +455,12 @@ struct MainView: View {
         }
     }
 
-    private func saveCurrentCoords() {
+    private func saveCurrentCoords(name: String) {
         guard let dest = appState.walkState.parsedDestination else { return }
-        let name = String(format: "%.4f, %.4f", dest.latitude, dest.longitude)
-        let point = SavedPoint(name: name, latitude: dest.latitude, longitude: dest.longitude)
+        let pointName = name.trimmingCharacters(in: .whitespaces).isEmpty
+            ? String(format: "%.4f, %.4f", dest.latitude, dest.longitude)
+            : name.trimmingCharacters(in: .whitespaces)
+        let point = SavedPoint(name: pointName, latitude: dest.latitude, longitude: dest.longitude)
         appState.walkState.savedPoints.append(point)
         SavedPoint.save(appState.walkState.savedPoints)
     }
