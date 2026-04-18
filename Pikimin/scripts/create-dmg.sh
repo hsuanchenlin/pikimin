@@ -72,6 +72,7 @@ create-dmg \
     --window-size 660 400 \
     --icon-size 96 \
     --icon "$APP_NAME.app" 165 170 \
+    --hide-extension "$APP_NAME.app" \
     --app-drop-link 495 170 \
     --text-size 14 \
     --no-internet-enable \

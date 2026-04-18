@@ -120,7 +120,7 @@ struct MainView: View {
                                 set: { walk.speed = $0 }
                             )) {
                                 ForEach(WalkSpeed.allCases, id: \.self) { speed in
-                                    Text(speed.rawValue).tag(speed)
+                                    Text("\(speed.rawValue) (\(String(format: "%.0f", speed.kmPerHour)) km/h)").tag(speed)
                                 }
                             }
                             .frame(width: 120)
@@ -208,6 +208,28 @@ struct MainView: View {
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        // ETA for walk-to-destination
+                        if walk.mode == .toDestination && walk.parsedDestination != nil {
+                            let fromLat = walk.isWalking ? walk.latitude : 0
+                            let fromLon = walk.isWalking ? walk.longitude : 0
+                            HStack(spacing: 16) {
+                                if let dist = walk.distanceText(fromLat: fromLat, fromLon: fromLon) {
+                                    Label(dist, systemImage: "arrow.triangle.swap")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                if let eta = walk.etaText(fromLat: fromLat, fromLon: fromLon) {
+                                    Label("ETA: \(eta)", systemImage: "clock")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Label(String(format: "%.1f km/h", walk.speed.kmPerHour), systemImage: "speedometer")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
                             }
                         }
 

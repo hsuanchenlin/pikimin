@@ -72,6 +72,18 @@ enum WalkSpeed: String, CaseIterable {
         case .sprint: return 30         // ~3.5 steps/sec
         }
     }
+
+    /// Speed in meters per second
+    var metersPerSecond: Double {
+        let stepMs = Double(gaitDelay * 5 + restDelay * 2)
+        let stepsPerSec = 1000.0 / stepMs
+        return gpsStep * 111_000 * stepsPerSec  // 1 degree ≈ 111km
+    }
+
+    /// Speed in km/h
+    var kmPerHour: Double {
+        metersPerSecond * 3.6
+    }
 }
 
 struct SavedPoint: Identifiable, Codable {
@@ -135,6 +147,40 @@ final class WalkState {
     var speed: WalkSpeed = .normal
     var destCoords: String = ""  // "lat, lon" format
     var savedPoints: [SavedPoint] = []
+
+    /// Estimated distance to destination in meters
+    func distanceToDestination(fromLat: Double, fromLon: Double) -> Double? {
+        guard let dest = parsedDestination else { return nil }
+        let dLat = (dest.latitude - fromLat) * 111_000
+        let dLon = (dest.longitude - fromLon) * 111_000 * cos(fromLat * .pi / 180)
+        return (dLat * dLat + dLon * dLon).squareRoot()
+    }
+
+    /// Estimated time of arrival string
+    func etaText(fromLat: Double, fromLon: Double) -> String? {
+        guard let dist = distanceToDestination(fromLat: fromLat, fromLon: fromLon) else { return nil }
+        let mps = speed.metersPerSecond
+        guard mps > 0 else { return nil }
+        let seconds = Int(dist / mps)
+        if seconds < 60 {
+            return "< 1 min"
+        }
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes) min"
+    }
+
+    /// Distance text
+    func distanceText(fromLat: Double, fromLon: Double) -> String? {
+        guard let dist = distanceToDestination(fromLat: fromLat, fromLon: fromLon) else { return nil }
+        if dist >= 1000 {
+            return String(format: "%.1f km", dist / 1000)
+        }
+        return String(format: "%.0f m", dist)
+    }
 
     /// Parse destCoords into lat/lon
     var parsedDestination: (latitude: Double, longitude: Double)? {
