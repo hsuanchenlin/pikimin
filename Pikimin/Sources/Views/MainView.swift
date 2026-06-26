@@ -26,9 +26,15 @@ struct MainView: View {
                     Text("Pikmin Bloom Walk Simulator")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    Text("v\(AppVersion.current)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
                 .padding(.top, 20)
                 .padding(.bottom, 12)
+
+                // Update banner
+                updateBanner
 
                 // Emulator Card
                 GroupBox {
@@ -429,6 +435,7 @@ struct MainView: View {
         .onAppear {
             appState.emulatorManager.detectRunning()
             appState.walkState.savedPoints = SavedPoint.load()
+            Task { await appState.updateService.checkForUpdate() }
         }
         .alert("Save Location", isPresented: $showSaveDialog) {
             TextField("Name", text: $savePointName)
@@ -450,6 +457,76 @@ struct MainView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Edit the name or coordinates")
+        }
+    }
+
+    @ViewBuilder
+    private var updateBanner: some View {
+        let update = appState.updateService
+        switch update.state {
+        case .available(let version, let url):
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .foregroundStyle(.blue)
+                Text("Update \(version) available")
+                    .font(.subheadline)
+                Spacer()
+                Button("Update") {
+                    Task { await update.downloadAndInstall(from: url) }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+            .padding(10)
+            .background(.blue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        case .downloading(let progress):
+            HStack(spacing: 8) {
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                Text("Downloading...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(10)
+            .background(.blue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        case .installing:
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Installing update...")
+                    .font(.subheadline)
+            }
+            .padding(10)
+            .background(.blue.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        case .failed(let msg):
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text(msg)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Retry") {
+                    Task { await update.checkForUpdate() }
+                }
+                .controlSize(.small)
+            }
+            .padding(10)
+            .background(.orange.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        default:
+            EmptyView()
         }
     }
 

@@ -28,6 +28,7 @@ final class AppState {
     var emulatorManager: EmulatorManager
     let walkState = WalkState()
     var walkSimulator: WalkSimulator
+    var updateService = UpdateService()
 
     init() {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -134,7 +135,7 @@ final class AppState {
                 avd.name=Pikimin
                 disk.cachePartition=yes
                 disk.cachePartition.size=66MB
-                disk.dataPartition.size=6G
+                disk.dataPartition.size=16G
                 hw.accelerometer=yes
                 hw.accelerometer_uncalibrated=yes
                 hw.audioInput=yes

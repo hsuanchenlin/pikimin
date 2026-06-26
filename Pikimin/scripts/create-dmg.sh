@@ -6,6 +6,10 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_DIR/.build/release"
 DMG_DIR="$PROJECT_DIR/.build/dmg"
 APP_NAME="Pikimin"
+
+# Read version from Version.swift
+VERSION=$(grep 'static let current' "$PROJECT_DIR/Sources/Models/Version.swift" | sed 's/.*"\(.*\)".*/\1/')
+echo "Version: $VERSION"
 DMG_NAME="Pikimin.dmg"
 
 echo "Building release binary..."
@@ -21,7 +25,7 @@ cp "$BUILD_DIR/$APP_NAME" "$DMG_DIR/$APP_NAME.app/Contents/MacOS/"
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
 cp "$PROJECT_DIR/Resources/ADBKeyboard.apk" "$DMG_DIR/$APP_NAME.app/Contents/Resources/"
 
-cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
+cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -33,9 +37,9 @@ cat > "$DMG_DIR/$APP_NAME.app/Contents/Info.plist" << 'PLIST'
     <key>CFBundleName</key>
     <string>Pikimin</string>
     <key>CFBundleVersion</key>
-    <string>1.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>

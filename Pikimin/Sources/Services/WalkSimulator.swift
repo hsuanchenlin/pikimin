@@ -5,6 +5,7 @@ final class WalkSimulator {
     private let adb: ADBHelper
     private let state: WalkState
     private var walkTask: Task<Void, Never>?
+    private let console = EmulatorConsole()
 
     init(sdkDir: URL, state: WalkState) {
         self.adb = ADBHelper(sdkDir: sdkDir)
@@ -25,10 +26,17 @@ final class WalkSimulator {
         walkTask?.cancel()
         walkTask = nil
         state.phase = .idle
+        console.disconnect()
     }
 
     private func run() async {
         guard let coords = getLocation() else {
+            state.phase = .idle
+            return
+        }
+
+        // Open persistent telnet connection to emulator console
+        guard console.connect() else {
             state.phase = .idle
             return
         }
@@ -61,6 +69,7 @@ final class WalkSimulator {
                                   gaitDelay: gaitDelay, restDelay: restDelay)
         }
 
+        console.disconnect()
         state.addLog()
         state.phase = .idle
     }
@@ -168,31 +177,31 @@ final class WalkSimulator {
     private func doStep(step: Int, lat: Double, lon: Double, gaitDelay: Int, restDelay: Int) async {
         // Only update GPS every 3 steps (~1 update per second) to avoid jitter
         if step % 3 == 0 || step == 1 {
-            try? adb.geoFix(longitude: lon, latitude: lat)
+            console.geoFix(longitude: lon, latitude: lat)
         }
 
-        // Gait cycle — sensor updates for step detection
-        try? adb.setAcceleration(0.3, 0.4, 5.0)
-        try? adb.setGyroscope(0.2, 0.3, 0.0)
+        // Gait cycle via persistent telnet — no process spawning
+        console.setAcceleration(0.3, 0.4, 5.0)
+        console.setGyroscope(0.2, 0.3, 0.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
 
-        try? adb.setAcceleration(-1.5, 2.0, 22.0)
+        console.setAcceleration(-1.5, 2.0, 22.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
 
-        try? adb.setAcceleration(-2.0, 2.5, 25.0)
+        console.setAcceleration(-2.0, 2.5, 25.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
 
-        try? adb.setAcceleration(-0.3, 0.5, 12.0)
+        console.setAcceleration(-0.3, 0.5, 12.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
 
-        try? adb.setAcceleration(0.0, 0.0, 9.8)
-        try? adb.setGyroscope(0.0, 0.0, 0.0)
+        console.setAcceleration(0.0, 0.0, 9.8)
+        console.setGyroscope(0.0, 0.0, 0.0)
         try? await Task.sleep(for: .milliseconds(restDelay))
 
-        try? adb.setAcceleration(0.5, -0.6, 15.0)
+        console.setAcceleration(0.5, -0.6, 15.0)
         try? await Task.sleep(for: .milliseconds(gaitDelay))
 
-        try? adb.setAcceleration(0.0, 0.0, 9.8)
+        console.setAcceleration(0.0, 0.0, 9.8)
         try? await Task.sleep(for: .milliseconds(restDelay))
 
         state.currentStep = step
