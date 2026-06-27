@@ -49,7 +49,7 @@ enum WalkSpeed: String, CaseIterable {
         case .slow: return 0.000005     // → 3 km/h
         case .normal: return 0.000009   // → 8 km/h
         case .fast: return 0.000009     // → 12 km/h (faster cadence)
-        case .sprint: return 0.000007   // → 15 km/h (fastest cadence)
+        case .sprint: return 0.0000078  // → 16 km/h (fastest cadence)
         }
     }
 
