@@ -49,6 +49,7 @@ final class WalkSimulator {
         state.longitude = lon
 
         let totalSteps = state.totalSteps
+        totalStepsCache = totalSteps
         let mode = state.mode
         let speed = state.speed
         let gpsStep = speed.gpsStep
@@ -175,43 +176,46 @@ final class WalkSimulator {
     }
 
     private func doStep(step: Int, lat: Double, lon: Double, gaitDelay: Int, restDelay: Int) async {
+        let isUpdateStep = step % 3 == 0 || step == 1
+
         // Only update GPS every 3 steps (~1 update per second) to avoid jitter
-        if step % 3 == 0 || step == 1 {
+        if isUpdateStep {
             console.geoFix(longitude: lon, latitude: lat)
+            console.drain()   // discard accumulated console replies (prevents buffer stall)
         }
 
-        // Gait cycle via persistent telnet — no process spawning
-        console.setAcceleration(0.3, 0.4, 5.0)
-        console.setGyroscope(0.2, 0.3, 0.0)
-        try? await Task.sleep(for: .milliseconds(gaitDelay))
-
+        // Gait cycle via persistent telnet. Three keyframes (active → settle → rest)
+        // keep the accelerometer/gyro varied for realism while cutting sensor
+        // injections by ~half versus a per-phase cycle — each injection wakes the
+        // guest sensor HAL, so fewer of them is the main CPU saving here.
+        // Total duration stays 5*gaitDelay + 2*restDelay so walking speed is
+        // unchanged (and still matches WalkSpeed.metersPerSecond).
         console.setAcceleration(-1.5, 2.0, 22.0)
-        try? await Task.sleep(for: .milliseconds(gaitDelay))
-
-        console.setAcceleration(-2.0, 2.5, 25.0)
-        try? await Task.sleep(for: .milliseconds(gaitDelay))
+        console.setGyroscope(0.2, 0.3, 0.0)
+        try? await Task.sleep(for: .milliseconds(gaitDelay * 2))
 
         console.setAcceleration(-0.3, 0.5, 12.0)
-        try? await Task.sleep(for: .milliseconds(gaitDelay))
+        try? await Task.sleep(for: .milliseconds(gaitDelay * 2))
 
         console.setAcceleration(0.0, 0.0, 9.8)
         console.setGyroscope(0.0, 0.0, 0.0)
-        try? await Task.sleep(for: .milliseconds(restDelay))
+        try? await Task.sleep(for: .milliseconds(gaitDelay + restDelay * 2))
 
-        console.setAcceleration(0.5, -0.6, 15.0)
-        try? await Task.sleep(for: .milliseconds(gaitDelay))
-
-        console.setAcceleration(0.0, 0.0, 9.8)
-        try? await Task.sleep(for: .milliseconds(restDelay))
-
-        state.currentStep = step
-        state.latitude = lat
-        state.longitude = lon
+        // Throttle observable writes to the GPS cadence (~3x fewer SwiftUI
+        // re-renders): the UI shows step/coords, which don't need per-step churn.
+        if isUpdateStep || step == totalStepsCache {
+            state.currentStep = step
+            state.latitude = lat
+            state.longitude = lon
+        }
 
         if step % 50 == 0 || step == 1 {
             state.addLog()
         }
     }
+
+    /// Cached so doStep can flush the final UI update on the last step.
+    private var totalStepsCache = 0
 
     private func getLocation() -> (latitude: Double, longitude: Double)? {
         guard let output = try? adb.shell("dumpsys location") else { return nil }

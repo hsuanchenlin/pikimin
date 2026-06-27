@@ -134,6 +134,13 @@ final class EmulatorConsole: @unchecked Sendable {
         send("geo fix \(longitude) \(latitude)")
     }
 
+    /// Discard any pending console replies. We never use them, but if left unread
+    /// they fill the socket receive buffer over a long walk and eventually stall the
+    /// emulator's console thread (which burns CPU blocking on its write). Cheap to call.
+    func drain() {
+        _ = readAvailable()
+    }
+
     private func readAvailable() -> String {
         guard let input = inputStream else { return "" }
         var buffer = [UInt8](repeating: 0, count: 4096)
