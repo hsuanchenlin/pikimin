@@ -10,6 +10,7 @@ struct MainView: View {
     @State private var savePointName: String = ""
     @State private var showEditDialog: Bool = false
     @State private var editingPoint: SavedPoint?
+    @State private var showResetStorageConfirm: Bool = false
     @State private var editPointName: String = ""
     @State private var editPointCoords: String = ""
 
@@ -72,6 +73,29 @@ struct MainView: View {
                                 .font(.caption)
                                 .foregroundStyle(.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        // Storage: enlarge an existing (pre-16GB) emulator.
+                        HStack(spacing: 8) {
+                            Image(systemName: "internaldrive")
+                                .foregroundStyle(.secondary)
+                            if emu.isResetting {
+                                ProgressView().controlSize(.small)
+                                Text("Resetting storage…")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Storage")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Button("Reset & enlarge to 16 GB") {
+                                showResetStorageConfirm = true
+                            }
+                            .font(.caption)
+                            .buttonStyle(.bordered)
+                            .disabled(emu.state == .booting || emu.isResetting)
                         }
 
                         // Text input helper
@@ -445,6 +469,15 @@ struct MainView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Enter a name for this location")
+        }
+        .alert("Reset & enlarge storage?", isPresented: $showResetStorageConfirm) {
+            Button("Reset to 16 GB", role: .destructive) {
+                appState.walkSimulator.stop()
+                Task { await appState.emulatorManager.resetStorage() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This wipes the emulator and recreates it at 16 GB. Installed apps and your Google sign-in will be erased — it's the only way to enlarge an existing emulator. You'll need to sign in and reinstall your app afterward.")
         }
         .alert("Edit Location", isPresented: $showEditDialog) {
             TextField("Name", text: $editPointName)

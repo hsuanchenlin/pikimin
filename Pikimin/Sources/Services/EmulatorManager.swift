@@ -11,6 +11,7 @@ enum EmulatorState: String {
 final class EmulatorManager {
     var state: EmulatorState = .stopped
     var error: String?
+    var isResetting = false
 
     private var emulatorProcess: Process?
     private let sdkDir: URL
@@ -74,7 +75,7 @@ final class EmulatorManager {
         resize.waitUntilExit()
     }
 
-    func start() async {
+    func start(wipeData: Bool = false) async {
         guard state == .stopped else { return }
         state = .booting
         error = nil
@@ -92,12 +93,14 @@ final class EmulatorManager {
             env["ANDROID_AVD_HOME"] = avdDir.path
             process.environment = env
 
-            process.arguments = [
+            var args = [
                 "-avd", "Pikimin",
                 "-no-snapshot-load",
                 "-gpu", "host",
                 "-dns-server", "8.8.8.8"
             ]
+            if wipeData { args.append("-wipe-data") }
+            process.arguments = args
 
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
@@ -123,6 +126,28 @@ final class EmulatorManager {
             self.error = error.localizedDescription
             state = .stopped
         }
+    }
+
+    /// Wipe and recreate the data partition at the target size. This is the only
+    /// reliable way to enlarge an existing AVD — a Play Store image's encrypted
+    /// /data can't be grown in place, so raising the config ceiling alone leaves the
+    /// usable size unchanged. DESTRUCTIVE: erases installed apps and the Google login.
+    func resetStorage() async {
+        guard !isResetting else { return }
+        isResetting = true
+        error = nil
+
+        stop()   // kills the emulator and sets state = .stopped
+        // Wait for the device to drop so the new instance can claim the port.
+        for _ in 0..<30 {
+            if !adb.isDeviceOnline() { break }
+            try? await Task.sleep(for: .seconds(1))
+        }
+
+        // Raise the config ceiling first; -wipe-data then recreates userdata at it.
+        migrateDataPartitionSize()
+        isResetting = false
+        await start(wipeData: true)
     }
 
     func stop() {
