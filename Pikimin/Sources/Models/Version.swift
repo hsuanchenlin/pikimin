@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppVersion {
-    static let current = "1.1.0"
+    static let current = "1.2.0"
 
     /// Compare two semver strings. Returns true if remote > current.
     static func isNewer(_ remote: String) -> Bool {
