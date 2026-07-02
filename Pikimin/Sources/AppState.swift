@@ -159,7 +159,7 @@ final class AppState {
                 hw.lcd.height=2400
                 hw.lcd.width=1080
                 hw.mainKeys=no
-                hw.ramSize=2G
+                hw.ramSize=6144
                 hw.screen=multi-touch
                 hw.sdCard=yes
                 hw.sensors.gyroscope_uncalibrated=yes
