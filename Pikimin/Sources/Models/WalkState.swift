@@ -42,6 +42,7 @@ enum WalkSpeed: String, CaseIterable {
     case normal = "Normal"
     case fast = "Fast"
     case sprint = "Sprint"
+    case turbo = "Turbo"
 
     /// GPS step size in degrees per step
     var gpsStep: Double {
@@ -50,6 +51,7 @@ enum WalkSpeed: String, CaseIterable {
         case .normal: return 0.000009   // → 8 km/h
         case .fast: return 0.000009     // → 12 km/h (faster cadence)
         case .sprint: return 0.0000078  // → 16 km/h (fastest cadence)
+        case .turbo: return 0.0000075   // → 20 km/h (shortest step, quickest cadence)
         }
     }
 
@@ -60,6 +62,7 @@ enum WalkSpeed: String, CaseIterable {
         case .normal: return 50         // ~2.2 steps/sec
         case .fast: return 35           // ~3.4 steps/sec
         case .sprint: return 25         // ~5.1 steps/sec
+        case .turbo: return 20          // ~6.7 steps/sec
         }
     }
 
@@ -70,6 +73,7 @@ enum WalkSpeed: String, CaseIterable {
         case .normal: return 100
         case .fast: return 60
         case .sprint: return 35
+        case .turbo: return 25
         }
     }
 
