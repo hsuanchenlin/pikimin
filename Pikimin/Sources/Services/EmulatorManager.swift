@@ -41,6 +41,17 @@ final class EmulatorManager {
     /// existing AVDs are raised to it on launch (non-destructively).
     static let targetDataPartitionSize = "16G"
 
+    /// Guest RAM (MB) passed to the emulator at launch. Pikmin Bloom alone is
+    /// ~1.1 GB resident and the Google Play services stack adds ~1 GB more, so a
+    /// 2 GB guest thrashes on swap continuously (swap fully exhausted, ~1M major
+    /// faults) — the main cause of stalls, especially once walk simulation starts
+    /// waking the game every step. 6 GB matches a real Pixel 7 and clears the
+    /// thrash. Passed via `-memory`, so it applies to existing AVDs immediately
+    /// (RAM size isn't persisted state — no data reset needed) and overrides the
+    /// config's hw.ramSize. The host has ample RAM; qemu only touches what the
+    /// guest dirties.
+    static let guestMemoryMB = 6144
+
     /// Raise an existing AVD's data partition ceiling to `targetDataPartitionSize`.
     /// Rewrites config.ini and grows the userdata qcow2. Both steps are non-destructive
     /// and idempotent. For Play Store images the larger size is only realized after a
@@ -96,6 +107,7 @@ final class EmulatorManager {
             var args = [
                 "-avd", "Pikimin",
                 "-no-snapshot-load",
+                "-memory", String(EmulatorManager.guestMemoryMB),
                 "-gpu", "host",
                 "-dns-server", "8.8.8.8"
             ]
