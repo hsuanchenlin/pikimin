@@ -135,7 +135,7 @@ final class AppState {
                 avd.name=Pikimin
                 disk.cachePartition=yes
                 disk.cachePartition.size=66MB
-                disk.dataPartition.size=16G
+                disk.dataPartition.size=8G
                 hw.accelerometer=yes
                 hw.accelerometer_uncalibrated=yes
                 hw.audioInput=yes

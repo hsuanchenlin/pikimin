@@ -75,7 +75,7 @@ struct MainView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-                        // Storage: enlarge an existing (pre-16GB) emulator.
+                        // Storage: enlarge an existing (pre-8GB) emulator.
                         HStack(spacing: 8) {
                             Image(systemName: "internaldrive")
                                 .foregroundStyle(.secondary)
@@ -90,7 +90,7 @@ struct MainView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button("Reset & enlarge to 16 GB") {
+                            Button("Reset & enlarge to 8 GB") {
                                 showResetStorageConfirm = true
                             }
                             .font(.caption)
@@ -471,13 +471,13 @@ struct MainView: View {
             Text("Enter a name for this location")
         }
         .alert("Reset & enlarge storage?", isPresented: $showResetStorageConfirm) {
-            Button("Reset to 16 GB", role: .destructive) {
+            Button("Reset to 8 GB", role: .destructive) {
                 appState.walkSimulator.stop()
                 Task { await appState.emulatorManager.resetStorage() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This wipes the emulator and recreates it at 16 GB. Installed apps and your Google sign-in will be erased — it's the only way to enlarge an existing emulator. You'll need to sign in and reinstall your app afterward.")
+            Text("This wipes the emulator and recreates it at 8 GB. Installed apps and your Google sign-in will be erased — it's the only way to enlarge an existing emulator. You'll need to sign in and reinstall your app afterward.")
         }
         .alert("Edit Location", isPresented: $showEditDialog) {
             TextField("Name", text: $editPointName)

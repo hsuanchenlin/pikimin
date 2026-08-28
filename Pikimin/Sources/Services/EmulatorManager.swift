@@ -39,7 +39,7 @@ final class EmulatorManager {
 
     /// Target data partition size for the AVD. New AVDs are created at this size;
     /// existing AVDs are raised to it on launch (non-destructively).
-    static let targetDataPartitionSize = "16G"
+    static let targetDataPartitionSize = "8G"
 
     /// Guest RAM (MB) passed to the emulator at launch. Pikmin Bloom alone is
     /// ~1.1 GB resident and the Google Play services stack adds ~1 GB more, so a
